@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Camera, ClipboardList, FileDown, Images, LocateFixed } from "lucide-react";
+import { Camera, ClipboardList, LocateFixed } from "lucide-react";
 import { Splash } from "@/components/Splash";
 import { CameraCapture } from "@/components/CameraCapture";
 import { StakeMap } from "@/components/StakeMap";
 import { AppShell } from "@/components/app-shell";
-import { exportPhotoLogCsv } from "@/lib/photoLog";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { findNearestStake, PROJECT_CENTER, quantize } from "@/lib/findStake";
@@ -19,7 +18,6 @@ function Index() {
   const online = useOnlineStatus();
   const [demo, setDemo] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [exportMsg, setExportMsg] = useState<string | null>(null);
   const [follow, setFollow] = useState(true);
   const [recenterNonce, setRecenterNonce] = useState(0);
 
@@ -50,101 +48,13 @@ function Index() {
     ? { estaca: String(cameraMatch.estaca), street: cameraMatch.street.name }
     : undefined;
 
+  const streetShort = match?.street.name.replace(/^Rua /, "") ?? "";
+
   return (
     <AppShell>
-      <div className="flex min-h-0 flex-1 flex-col bg-bg text-fg">
+      <div className="relative flex min-h-0 flex-1 flex-col bg-bg text-fg">
         <Splash />
-        <header className="px-3 pt-4 pb-3">
-          <div className="rounded-3xl border border-border bg-surface/80 p-4 shadow-[0_18px_50px_-24px_rgba(245,197,24,0.45)]">
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-muted">
-                Retiro São Joaquim · Itaboraí/RJ
-              </div>
-              <div className="flex items-center gap-2">
-                {!online && (
-                  <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent ring-1 ring-accent/30">
-                    Offline
-                  </span>
-                )}
-                {usingDemo && (
-                  <span className="rounded-full bg-gps/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gps ring-1 ring-gps/30">
-                    Demo
-                  </span>
-                )}
-                <div className="text-[10px] font-semibold uppercase tracking-wide text-accent/80">
-                  By Vitor Lucas
-                </div>
-              </div>
-            </div>
-            {match ? (
-              <>
-                <h1 className="mt-3 font-display text-2xl font-semibold leading-tight tracking-tight text-fg">
-                  {match.street.name}
-                </h1>
-                <div className="mt-3 flex items-end gap-3">
-                  <div className="rounded-2xl bg-accent px-4 py-2 font-mono text-4xl font-bold tabular-nums leading-none text-accent-fg">
-                    E-{match.estaca}
-                  </div>
-                  <div className="pb-1 text-sm tabular-nums text-muted">
-                    {match.offset >= 0 ? "+" : ""}
-                    {match.offset.toFixed(1)} m
-                    <div className="text-xs text-muted/70">{match.distance.toFixed(1)} m do eixo</div>
-                  </div>
-                </div>
-              </>
-            ) : geo.error && !usingDemo ? (
-              <>
-                <h1 className="mt-3 text-2xl font-semibold text-danger">Sem GPS</h1>
-                <p className="text-sm text-muted">{geo.error}</p>
-                <button
-                  type="button"
-                  onClick={() => setDemo(true)}
-                  className="mt-3 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-fg"
-                >
-                  Simular no bairro
-                </button>
-              </>
-            ) : !position ? (
-              <>
-                <h1 className="mt-3 text-2xl font-semibold text-muted">Obtendo GPS…</h1>
-                <p className="text-sm text-muted/80">Permita o acesso à localização para começar.</p>
-                <button
-                  type="button"
-                  onClick={() => setDemo(true)}
-                  className="mt-3 rounded-full bg-subtle px-4 py-2 text-sm font-semibold text-fg"
-                >
-                  Simular no bairro
-                </button>
-              </>
-            ) : (
-              <>
-                <h1 className="mt-3 text-2xl font-semibold text-muted">Fora do projeto</h1>
-                <p className="text-sm text-muted/80">
-                  Nenhuma rua do bairro a menos de 60 m da sua posição.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setDemo(true)}
-                  className="mt-3 rounded-full bg-subtle px-4 py-2 text-sm font-semibold text-fg"
-                >
-                  Ir para o bairro
-                </button>
-              </>
-            )}
-            <Link
-              to="/novo"
-              search={apontarSearch ?? {}}
-              className="mt-4 flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-accent px-4 text-sm font-semibold text-accent-fg"
-            >
-              <ClipboardList className="size-4" />
-              {cameraMatch
-                ? `Apontar E-${cameraMatch.estaca} · ${cameraMatch.street.name.replace(/^Rua /, "")}`
-                : "Abrir apontamento"}
-            </Link>
-          </div>
-        </header>
-
-        <div className="relative mx-3 mb-3 min-h-[320px] flex-1 overflow-hidden rounded-3xl border border-border shadow-2xl shadow-black/50">
+        <div className="absolute inset-0">
           <StakeMap
             position={position}
             accuracy={accuracy}
@@ -153,52 +63,98 @@ function Index() {
             onUserDrag={() => setFollow(false)}
             recenterNonce={recenterNonce}
           />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-2 p-3">
-            <div className="pointer-events-auto rounded-full border border-border bg-bg/70 px-3 py-1.5 text-xs font-medium text-fg backdrop-blur">
-              {exportMsg ? exportMsg : null}
-              {exportMsg ? " · " : null}
-              GPS ±{accuracy ? accuracy.toFixed(0) : "--"} m
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 pt-[max(12px,env(safe-area-inset-top))]">
+          <div className="pointer-events-auto rounded-2xl border border-border bg-bg/88 p-3 shadow-card backdrop-blur-md">
+            <div className="flex items-center justify-between gap-2 text-xs font-medium uppercase tracking-widest text-muted">
+              <span>L449 · São Joaquim</span>
+              <span className="flex items-center gap-2 normal-case tracking-normal">
+                {!online ? <span className="rounded-full bg-accent/15 px-2 py-0.5 text-accent">Offline</span> : null}
+                {usingDemo ? <span className="rounded-full bg-gps/15 px-2 py-0.5 text-gps">Demo</span> : null}
+                <span className="tabular-nums text-muted">GPS ±{accuracy ? accuracy.toFixed(0) : "--"} m</span>
+              </span>
             </div>
 
-            <div className="pointer-events-auto flex flex-col items-center gap-2 rounded-full border border-border bg-bg/70 p-1.5 backdrop-blur">
+            {match ? (
+              <div className="mt-2 flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm text-muted">{streetShort}</p>
+                  <p className="font-display text-3xl font-semibold leading-none tracking-tight">E-{match.estaca}</p>
+                </div>
+                <p className="pb-0.5 text-right text-sm tabular-nums text-muted">
+                  {match.offset >= 0 ? "+" : ""}
+                  {match.offset.toFixed(1)} m
+                  <span className="block text-xs text-muted/70">{match.distance.toFixed(1)} m do eixo</span>
+                </p>
+              </div>
+            ) : geo.error && !usingDemo ? (
+              <div className="mt-2">
+                <p className="font-display text-xl font-semibold text-danger">Sem GPS</p>
+                <p className="text-sm text-muted">{geo.error}</p>
+                <button
+                  type="button"
+                  onClick={() => setDemo(true)}
+                  className="mt-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-fg"
+                >
+                  Simular no bairro
+                </button>
+              </div>
+            ) : !position ? (
+              <div className="mt-2">
+                <p className="font-display text-xl font-semibold">Obtendo GPS…</p>
+                <p className="text-sm text-muted">Permita o acesso à localização.</p>
+                <button
+                  type="button"
+                  onClick={() => setDemo(true)}
+                  className="mt-2 rounded-full bg-subtle px-4 py-2 text-sm font-semibold text-fg"
+                >
+                  Simular no bairro
+                </button>
+              </div>
+            ) : (
+              <div className="mt-2">
+                <p className="font-display text-xl font-semibold">Fora do projeto</p>
+                <p className="text-sm text-muted">Nenhuma rua a menos de 60 m.</p>
+                <button
+                  type="button"
+                  onClick={() => setDemo(true)}
+                  className="mt-2 rounded-full bg-subtle px-4 py-2 text-sm font-semibold text-fg"
+                >
+                  Ir para o bairro
+                </button>
+              </div>
+            )}
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <Link
-                to="/fotos"
-                aria-label="Ver fotos capturadas"
-                className="grid h-11 w-11 place-items-center rounded-full bg-fg/5 text-accent transition active:scale-95"
+                to="/novo"
+                search={apontarSearch ?? {}}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-3 text-sm font-semibold text-accent-fg"
               >
-                <Images size={18} />
+                <ClipboardList className="size-4" />
+                {cameraMatch ? `Apontar E-${cameraMatch.estaca}` : "Apontar"}
               </Link>
               <button
                 type="button"
                 onClick={() => setCameraOpen(true)}
-                aria-label="Abrir câmera com carimbo de estaca"
-                className="grid h-11 w-11 place-items-center rounded-full bg-fg/5 text-accent transition active:scale-95"
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-fg"
               >
-                <Camera size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const n = exportPhotoLogCsv();
-                  setExportMsg(n ? `${n} foto(s) exportadas` : "Nenhuma foto salva ainda");
-                  setTimeout(() => setExportMsg(null), 3000);
-                }}
-                aria-label="Exportar CSV das fotos salvas"
-                className="grid h-11 w-11 place-items-center rounded-full bg-fg/5 text-accent transition active:scale-95"
-              >
-                <FileDown size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={recenter}
-                aria-label="Centralizar no GPS"
-                className="grid h-11 w-11 place-items-center rounded-full bg-accent text-accent-fg shadow-lg shadow-accent/20 transition active:scale-95"
-              >
-                <LocateFixed size={18} />
+                <Camera className="size-4" />
+                Foto
               </button>
             </div>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={recenter}
+          aria-label="Centralizar no GPS"
+          className="absolute bottom-4 right-4 z-20 grid size-12 place-items-center rounded-full bg-accent text-accent-fg shadow-lg shadow-accent/25"
+        >
+          <LocateFixed className="size-5" />
+        </button>
 
         {cameraOpen && (
           <CameraCapture

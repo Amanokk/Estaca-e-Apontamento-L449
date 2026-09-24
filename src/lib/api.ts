@@ -197,24 +197,36 @@ async function ensureSeed() {
 }
 
 export const getSnapshot = createServerFn({ method: "GET" }).handler(async (): Promise<Snapshot> => {
-  await ensureSeed();
-  const sql = await getSql();
-  const [works, streets, equipment, activities, apontamentos, presence] = await Promise.all([
-    sql<WorkRow>`select id, code, name, active from works order by code`,
-    sql<StreetRow>`select id, name, work_id, active from streets order by name`,
-    sql<EqRow>`select id, code, name, kind, plate, activity_ids, active from equipment order by code`,
-    sql<ActivityRow>`select id, name, kind, code from activities order by name`,
-    sql<AptRow>`select * from apontamentos order by date desc, start_time desc limit 400`,
-    sql<PresenceRow>`select * from presence where updated_at > now() - interval '8 minutes'`,
-  ]);
-  return {
-    works: works.map(mapWork),
-    streets: streets.map(mapStreet),
-    equipment: equipment.map(mapEq),
-    activities: activities.map(mapActivity),
-    apontamentos: apontamentos.map(mapApt),
-    presence: presence.map(mapPresence),
-  };
+  try {
+    await ensureSeed();
+    const sql = await getSql();
+    const [works, streets, equipment, activities, apontamentos, presence] = await Promise.all([
+      sql<WorkRow>`select id, code, name, active from works order by code`,
+      sql<StreetRow>`select id, name, work_id, active from streets order by name`,
+      sql<EqRow>`select id, code, name, kind, plate, activity_ids, active from equipment order by code`,
+      sql<ActivityRow>`select id, name, kind, code from activities order by name`,
+      sql<AptRow>`select * from apontamentos order by date desc, start_time desc limit 400`,
+      sql<PresenceRow>`select * from presence where updated_at > now() - interval '8 minutes'`,
+    ]);
+    return {
+      works: works.map(mapWork),
+      streets: streets.map(mapStreet),
+      equipment: equipment.map(mapEq),
+      activities: activities.map(mapActivity),
+      apontamentos: apontamentos.map(mapApt),
+      presence: presence.map(mapPresence),
+    };
+  } catch (err) {
+    console.error("[snapshot] falling back to catalog", err);
+    return {
+      works: WORKS,
+      streets: STREETS,
+      equipment: EQUIPMENT,
+      activities: ACTIVITIES,
+      apontamentos: [],
+      presence: [],
+    };
+  }
 });
 
 const saveSchema = z.object({
@@ -376,9 +388,13 @@ export const pingPresence = createServerFn({ method: "POST" })
   });
 
 export const getPresence = createServerFn({ method: "GET" }).handler(async (): Promise<Presence[]> => {
-  const sql = await getSql();
-  const presence = await sql<PresenceRow>`select * from presence where updated_at > now() - interval '8 minutes'`;
-  return presence.map(mapPresence);
+  try {
+    const sql = await getSql();
+    const presence = await sql<PresenceRow>`select * from presence where updated_at > now() - interval '8 minutes'`;
+    return presence.map(mapPresence);
+  } catch {
+    return [];
+  }
 });
 
 export const reverseGeocode = createServerFn({ method: "POST" })

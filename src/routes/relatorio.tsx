@@ -8,18 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { apontamentosToCsv, buildDiarioText, downloadText, printReport } from "@/lib/export";
 import { useSnapshot } from "@/lib/use-snapshot";
-import { getSnapshot } from "@/lib/api";
 import { formatDateBR, formatDuration, minutesBetween, todayISO } from "@/lib/utils";
 
 export const Route = createFileRoute("/relatorio")({
-  loader: () => getSnapshot(),
-  staleTime: 60_000,
   component: Relatorio,
 });
 
 function Relatorio() {
-  const initial = Route.useLoaderData();
-  const { data, isLoading } = useSnapshot(initial);
+  const { data, isLoading } = useSnapshot();
   const [from, setFrom] = useState(todayISO());
   const [to, setTo] = useState(todayISO());
   const apontamentos = data?.apontamentos ?? [];

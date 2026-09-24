@@ -7,18 +7,14 @@ import { ScreenLoader } from "@/components/screen-loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDeleteApontamento, useSnapshot } from "@/lib/use-snapshot";
-import { getSnapshot } from "@/lib/api";
 import { formatDateBR } from "@/lib/utils";
 
 export const Route = createFileRoute("/historico")({
-  loader: () => getSnapshot(),
-  staleTime: 60_000,
   component: Historico,
 });
 
 function Historico() {
-  const initial = Route.useLoaderData();
-  const { data, isLoading } = useSnapshot(initial);
+  const { data, isLoading } = useSnapshot();
   const del = useDeleteApontamento();
   const [q, setQ] = useState("");
   const [eq, setEq] = useState("");
@@ -61,7 +57,7 @@ function Historico() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl font-semibold">Histórico</h1>
-            <p className="text-sm text-muted">Tudo o que a equipe apontou, em qualquer aparelho.</p>
+            <p className="text-sm text-muted">Apontamentos gravados neste aparelho.</p>
           </div>
           <Button asChild size="sm" variant="outline">
             <Link to="/relatorio">

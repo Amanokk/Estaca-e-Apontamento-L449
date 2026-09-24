@@ -7,25 +7,21 @@ import { collectMarkers, LiveMap } from "@/components/live-map";
 import { ScreenLoader } from "@/components/screen-loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getSnapshot } from "@/lib/api";
 import { buildCrew } from "@/lib/crew";
 import { getCrewLabel, getDeviceId, loadLast, setCrewLabel, useGps } from "@/lib/field-geo";
 import { useLivePresence, usePresencePing, useSnapshot } from "@/lib/use-snapshot";
 import { todayISO } from "@/lib/utils";
 
 export const Route = createFileRoute("/mapa")({
-  loader: () => getSnapshot(),
-  staleTime: 12_000,
   component: Mapa,
 });
 
 function Mapa() {
-  const initial = Route.useLoaderData();
-  const { data, isLoading } = useSnapshot(initial, true);
+  const { data, isLoading } = useSnapshot(undefined, true);
   const gps = useGps();
   const last = loadLast();
   const [label, setLabel] = useState(() => (typeof window === "undefined" ? "" : getCrewLabel()));
-  const { data: livePresence } = useLivePresence(true, initial.presence);
+  const { data: livePresence } = useLivePresence(true);
 
   const today = todayISO();
   const rows = useMemo(

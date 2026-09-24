@@ -56,7 +56,8 @@ export function StakeMap({ position, accuracy, match, follow, onUserDrag, recent
         zoomControl: false,
         attributionControl: false,
       });
-      L.control.zoom({ position: "topleft" }).addTo(map);
+      L.control.zoom({ position: "bottomleft" }).addTo(map);
+      requestAnimationFrame(() => map.invalidateSize());
 
       L.tileLayer(GOOGLE_SAT_TILES, {
         subdomains: ["0", "1", "2", "3"],

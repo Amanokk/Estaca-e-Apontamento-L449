@@ -89,7 +89,7 @@ var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 * the dev styles URL for route-scoped CSS collection.
 */
 async function getStartManifest(matchedRoutes) {
-	const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-F8vOf3Y1.mjs");
+	const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-DkYnE9dZ.mjs");
 	const startManifest = tsrStartManifest();
 	let routes = startManifest.routes;
 	routes[rootRouteId];
@@ -111,55 +111,55 @@ async function getStartManifest(matchedRoutes) {
 var manifest = {
 	"00292b52dd7688df04a75490ecb496222dc0fa08d0395f0171ed923baec56cf8": {
 		functionName: "getPresence_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"1a2e2f9a5e6c0cc2b16ff18ef04730889735175557329211235f34cd2ae03aab": {
 		functionName: "toggleStreet_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"248ee50e388b9300d95f63360cb601a04b13b11dedadbe2c9f883c8601c0a51d": {
 		functionName: "addEquipment_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"3d1c7dda79a7fdc17ceaf7ce20ff72734e2352e3f10bb2afdbfade1555773006": {
 		functionName: "updateEquipment_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"572516a8071f85131a32827d9675f8cfa4007eecf89ca944dfe1c2fd25c2a9e9": {
 		functionName: "addActivity_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"5c192a039b56d8e46a700abb17a5ffee18cbbf2d67bd0f12298a306bdd13d0e7": {
 		functionName: "closeApontamento_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"8d42ed533f9e880af7d4b9c7f833591bfa25f76948cdffd848723661f020b3dc": {
 		functionName: "getSnapshot_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"9adbf68a15d15b1c3afe18f38f6440b0816972ca3405db633a16ff37230a28af": {
 		functionName: "reverseGeocode_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"9cff1b772483fd6081dbf3a0cabbcfdfb0caa742731a4ba634c078ffca059d09": {
 		functionName: "addStreet_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"bcb49d7dde462ae0dc5126adee0ca7fccca81b652363a307d1137dada119b28a": {
 		functionName: "addWork_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"c0663af8e30866edb8347b722afe0e997ea4d393f77a8ef50929d7c835316f64": {
 		functionName: "deleteApontamento_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"ce847625bb57870d3161edb5b1541a32a2202cd294a7b5430ce2b1fde6de1c25": {
 		functionName: "upsertApontamento_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	},
 	"eef9a9df9c5ee2b86cde8892389b36bf627bdf3a94ed759df0f5daccf6550719": {
 		functionName: "pingPresence_createServerFn_handler",
-		importer: () => import("./api-4rFqtzVL.mjs")
+		importer: () => import("./api-DEmo0OIj.mjs")
 	}
 };
 async function getServerFnById(id, access) {
@@ -1429,7 +1429,7 @@ var getBaseManifest = getProdBaseManifest;
 var createEarlyHintsForRequest = createEarlyHintsCollector;
 async function loadEntries() {
 	const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-		import("./router-BRS6lCHF.mjs").then((n) => n.t),
+		import("./router-BG1a5Q9v.mjs").then((n) => n.t),
 		import("./start-5Z2QO8AU.mjs"),
 		import("./empty-plugin-adapters-D9UWiqvJ.mjs")
 	]);

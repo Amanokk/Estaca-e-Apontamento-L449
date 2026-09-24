@@ -11,10 +11,9 @@ import {
   addEquipment,
   addStreet,
   addWork,
-  getSnapshot,
   toggleStreet,
   updateEquipment,
-} from "@/lib/api";
+} from "@/lib/field-actions";
 import { KIND_LABEL } from "@/lib/catalog";
 import { useInvalidateSnapshot, useSnapshot } from "@/lib/use-snapshot";
 import type { EquipmentKind } from "@/lib/types";
@@ -22,15 +21,12 @@ import type { EquipmentKind } from "@/lib/types";
 const TABS = ["Máquinas", "Ruas", "Atividades"] as const;
 
 export const Route = createFileRoute("/cadastros")({
-  loader: () => getSnapshot(),
-  staleTime: 60_000,
   component: Cadastros,
 });
 
 function Cadastros() {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Máquinas");
-  const initial = Route.useLoaderData();
-  const { data, isLoading } = useSnapshot(initial);
+  const { data, isLoading } = useSnapshot();
 
   if (isLoading && !data) {
     return (
@@ -44,7 +40,7 @@ function Cadastros() {
     <AppShell>
       <header className="px-4 pb-3 pt-[max(16px,env(safe-area-inset-top))]">
         <h1 className="font-display text-2xl font-semibold">Cadastros</h1>
-        <p className="text-sm text-muted">O que você cadastrar aparece para todo mundo.</p>
+        <p className="text-sm text-muted">Máquinas, ruas e atividades da obra.</p>
       </header>
       <div className="mx-4 mb-4 grid grid-cols-3 gap-1 rounded-lg bg-surface-2 p-1">
         {TABS.map((t) => (

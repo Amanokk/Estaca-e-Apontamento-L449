@@ -1,41 +1,41 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import {
-  closeApontamento,
-  deleteApontamento,
-  getPresence,
-  getSnapshot,
-  pingPresence,
-  type SavePayload,
-  upsertApontamento,
-} from "./api";
+  endApontamento,
+  fetchPresence,
+  fetchSnapshot,
+  removeApontamento,
+  saveApontamento,
+  sendPresence,
+} from "./field-actions";
+import type { SavePayload } from "./api";
 import { getCrewLabel, getDeviceId, haversineMeters } from "./field-geo";
+import { seedSnapshot } from "./local-store";
 import type { GpsState, LastUsed, Presence, Snapshot } from "./types";
 
 export const SNAPSHOT_KEY = ["snapshot"] as const;
 export const PRESENCE_KEY = ["presence"] as const;
 
-export function useSnapshot(initial?: Snapshot, live = false) {
+export function useSnapshot(_initial?: Snapshot, live = false) {
   return useQuery({
     queryKey: SNAPSHOT_KEY,
-    queryFn: () => getSnapshot(),
-    initialData: initial,
+    queryFn: () => fetchSnapshot(),
     staleTime: live ? 8_000 : 60_000,
     refetchOnWindowFocus: false,
     refetchInterval: live ? 12_000 : false,
-    placeholderData: (prev) => prev ?? initial,
+    placeholderData: (prev) => prev ?? seedSnapshot(),
   });
 }
 
-export function useLivePresence(enabled: boolean, initial?: Presence[]) {
+export function useLivePresence(enabled: boolean, _initial?: Presence[]) {
   return useQuery({
     queryKey: PRESENCE_KEY,
-    queryFn: () => getPresence(),
+    queryFn: () => fetchPresence(),
     enabled,
-    initialData: initial,
     staleTime: 6_000,
     refetchInterval: enabled ? 8_000 : false,
     refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev ?? [],
   });
 }
 
@@ -54,7 +54,7 @@ export function useInvalidateSnapshot() {
 export function useUpsertApontamento() {
   const invalidate = useInvalidateSnapshot();
   return useMutation({
-    mutationFn: (data: SavePayload) => upsertApontamento({ data }),
+    mutationFn: (data: SavePayload) => saveApontamento(data),
     onSuccess: () => void invalidate(),
   });
 }
@@ -62,7 +62,7 @@ export function useUpsertApontamento() {
 export function useCloseApontamento() {
   const invalidate = useInvalidateSnapshot();
   return useMutation({
-    mutationFn: (data: { id: string; end: string }) => closeApontamento({ data }),
+    mutationFn: (data: { id: string; end: string }) => endApontamento(data.id, data.end),
     onSuccess: () => void invalidate(),
   });
 }
@@ -70,7 +70,7 @@ export function useCloseApontamento() {
 export function useDeleteApontamento() {
   const invalidate = useInvalidateSnapshot();
   return useMutation({
-    mutationFn: (id: string) => deleteApontamento({ data: { id } }),
+    mutationFn: (id: string) => removeApontamento(id),
     onSuccess: () => void invalidate(),
   });
 }
@@ -92,19 +92,17 @@ export function usePresencePing(
       const age = Date.now() - lastSent.current.t;
       if (!force && moved < 8 && age < 12_000) return;
       lastSent.current = { lat, lng, t: Date.now() };
-      void pingPresence({
-        data: {
-          deviceId: getDeviceId(),
-          label: getCrewLabel() || "No campo",
-          lat,
-          lng,
-          accuracy: acc,
-          workId: last.workId || null,
-          equipmentId: last.equipmentId || null,
-          streetId: last.streetId || null,
-          activityId: last.activityId || null,
-          apontamentoId: last.apontamentoId || null,
-        },
+      void sendPresence({
+        deviceId: getDeviceId(),
+        label: getCrewLabel() || "No campo",
+        lat,
+        lng,
+        accuracy: acc,
+        workId: last.workId || null,
+        equipmentId: last.equipmentId || null,
+        streetId: last.streetId || null,
+        activityId: last.activityId || null,
+        apontamentoId: last.apontamentoId || null,
       });
     };
 

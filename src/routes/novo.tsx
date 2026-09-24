@@ -4,21 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ApontamentoForm } from "@/components/apontamento-form";
 import { AppShell } from "@/components/app-shell";
-import { GpsBanner } from "@/components/gps-banner";
-import { ScreenLoader } from "@/components/screen-loader";
-import { addActivity, getSnapshot } from "@/lib/api";
 import { openForEquipment } from "@/lib/crew";
 import { draftFromApontamento, emptyDraft } from "@/lib/draft";
+import { addActivity } from "@/lib/field-actions";
 import { getDeviceId, loadLast, matchStreetByLabel, saveLast, useGps } from "@/lib/field-geo";
 import { usePlaceLabel } from "@/lib/place";
+import type { Draft } from "@/lib/types";
 import {
   useCloseApontamento,
   useInvalidateSnapshot,
-  usePresencePing,
   useSnapshot,
   useUpsertApontamento,
 } from "@/lib/use-snapshot";
-import type { Draft } from "@/lib/types";
 import { nowHHMM, uid } from "@/lib/utils";
 
 export const Route = createFileRoute("/novo")({
@@ -29,16 +26,13 @@ export const Route = createFileRoute("/novo")({
     if (typeof raw.street === "string" && raw.street) out.street = raw.street;
     return out;
   },
-  loader: () => getSnapshot(),
-  staleTime: 12_000,
   component: Novo,
 });
 
 function Novo() {
   const { edit, estaca: estacaFromMap, street: streetFromMap } = Route.useSearch();
   const navigate = useNavigate();
-  const initial = Route.useLoaderData();
-  const { data, isLoading } = useSnapshot(initial, true);
+  const { data } = useSnapshot(undefined, true);
   const gps = useGps();
   const upsert = useUpsertApontamento();
   const closeMut = useCloseApontamento();
@@ -61,14 +55,6 @@ function Novo() {
       ? current
       : openForEquipment(data?.apontamentos ?? [], draft.equipmentId);
   const isOpenEdit = Boolean(openRow && idRef.current === openRow.id && !draft.ended);
-
-  usePresencePing(gps, {
-    workId: draft.workId,
-    streetId: draft.streetId,
-    equipmentId: draft.equipmentId,
-    activityId: draft.activityId,
-    apontamentoId: isOpenEdit ? idRef.current : openRow?.id ?? null,
-  });
 
   useEffect(() => {
     if (edit) {
@@ -113,10 +99,10 @@ function Novo() {
       streetTouched.current = false;
       matchedStreet.current = false;
       const base = emptyDraft(loadLast());
-      const streets = data?.streets ?? [];
+      const streets = data.streets ?? [];
       const fromMap = streetFromMap
-        ? streets.find((s) => s.name === streetFromMap) ??
-          matchStreetByLabel(streetFromMap, streets, base.workId)
+        ? (streets.find((s) => s.name === streetFromMap) ??
+          matchStreetByLabel(streetFromMap, streets, base.workId))
         : undefined;
       setDraft({
         ...base,
@@ -129,7 +115,7 @@ function Novo() {
         matchedStreet.current = true;
       }
     }
-  }, [edit, data?.apontamentos, data?.streets, last.equipmentId, estacaFromMap, streetFromMap]);
+  }, [edit, data?.apontamentos, data?.streets, last.equipmentId, estacaFromMap, streetFromMap, data]);
 
   useEffect(() => {
     if (edit || isOpenEdit) return;
@@ -207,31 +193,18 @@ function Novo() {
         activityId: draft.activityId,
       });
       setSaveState("saved");
-      toast.success(
-        saved.end
-          ? "Atividade encerrada para a equipe"
-          : isOpenEdit
-            ? "Atividade atualizada — continua aberta até Encerrar"
-            : "Atividade aberta para toda a equipe",
-      );
-      void navigate({ to: "/" });
+      toast.success(saved.end ? "Atividade encerrada" : isOpenEdit ? "Atividade atualizada" : "Atividade aberta");
+      void navigate({ to: "/apontamento" });
     } catch {
       setSaveState("error");
+      toast.error("Não foi possível salvar. Tente de novo.");
     }
   }
 
   async function encerrar() {
     await closeMut.mutateAsync({ id: idRef.current, end: nowHHMM() });
     toast.success("Atividade encerrada");
-    void navigate({ to: "/" });
-  }
-
-  if (isLoading && !data) {
-    return (
-      <AppShell hideNav>
-        <ScreenLoader />
-      </AppShell>
-    );
+    void navigate({ to: "/apontamento" });
   }
 
   return (
@@ -239,7 +212,7 @@ function Novo() {
       <header className="flex items-center gap-3 px-3 pb-2 pt-[max(12px,env(safe-area-inset-top))]">
         <button
           type="button"
-          onClick={() => void navigate({ to: "/" })}
+          onClick={() => void navigate({ to: "/apontamento" })}
           className="flex size-12 items-center justify-center rounded-md text-fg"
           aria-label="Voltar"
         >
@@ -250,16 +223,11 @@ function Novo() {
             {isOpenEdit ? "Atividade em andamento" : edit ? "Editar apontamento" : "Nova atividade"}
           </h1>
           <p className="text-xs text-muted">
-            {isOpenEdit
-              ? "Save global: a equipe vê isto até alguém encerrar."
-              : "Nada é criado sozinho. Toque em Concluir para abrir a atividade."}
+            {estacaFromMap ? `Estaca ${estacaFromMap}` : "Máquina, serviço, rua e concluir."}
           </p>
         </div>
       </header>
-      <div className="px-4 pb-2">
-        <GpsBanner gps={gps} />
-      </div>
-      <main className="px-4">
+      <main className="px-4 pb-6">
         <ApontamentoForm
           draft={draft}
           onChange={onChangeDraft}
@@ -276,7 +244,7 @@ function Novo() {
           onEncerrar={isOpenEdit ? () => void encerrar() : undefined}
           onAddActivity={async (name, equipmentId) => {
             const { id } = await addActivity({ data: { name, equipmentId } });
-            await invalidate();
+            invalidate();
             return id;
           }}
         />

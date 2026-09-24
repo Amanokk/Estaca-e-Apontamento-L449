@@ -1,6 +1,6 @@
 import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
 import { t as cn } from "./utils-C8V_sHGQ.mjs";
-import { k as Check } from "../_libs/lucide-react.mjs";
+import { O as Check } from "../_libs/lucide-react.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/choice-DtEvLaaF.js
 var import_jsx_runtime = require_jsx_runtime();
 function ChoiceList({ options, value, onChange, columns = 1 }) {

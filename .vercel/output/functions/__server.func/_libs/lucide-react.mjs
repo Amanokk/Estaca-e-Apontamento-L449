@@ -275,30 +275,6 @@ var Download = createLucideIcon("download", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var FileDown = createLucideIcon("file-down", [
-	["path", {
-		d: "M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z",
-		key: "1rqfz7"
-	}],
-	["path", {
-		d: "M14 2v4a2 2 0 0 0 2 2h4",
-		key: "tnqrlb"
-	}],
-	["path", {
-		d: "M12 18v-6",
-		key: "17g6i2"
-	}],
-	["path", {
-		d: "m9 15 3 3 3-3",
-		key: "1npd3o"
-	}]
-]);
-/**
-* @license lucide-react v0.510.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
 var FileSpreadsheet = createLucideIcon("file-spreadsheet", [
 	["path", {
 		d: "M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z",
@@ -830,4 +806,4 @@ var ZoomIn = createLucideIcon("zoom-in", [
 	}]
 ]);
 //#endregion
-export { Camera as A, FileDown as C, ClipboardList as D, Clock as E, ArrowLeft as M, ChevronDown as O, FileSpreadsheet as S, Copy as T, MapPin as _, TriangleAlert as a, LoaderCircle as b, Share2 as c, Radio as d, Printer as f, MapPinned as g, Navigation as h, Users as i, CalendarDays as j, Check as k, Settings2 as l, Pencil as m, ZoomOut as n, Trash2 as o, Plus as p, X as r, Square as s, ZoomIn as t, Search as u, LocateOff as v, Download as w, Images as x, LocateFixed as y };
+export { CalendarDays as A, Download as C, ChevronDown as D, ClipboardList as E, Check as O, FileSpreadsheet as S, Clock as T, MapPin as _, TriangleAlert as a, LoaderCircle as b, Share2 as c, Radio as d, Printer as f, MapPinned as g, Navigation as h, Users as i, ArrowLeft as j, Camera as k, Settings2 as l, Pencil as m, ZoomOut as n, Trash2 as o, Plus as p, X as r, Square as s, ZoomIn as t, Search as u, LocateOff as v, Copy as w, Images as x, LocateFixed as y };

@@ -7,12 +7,14 @@
       "status": 200,
       "title": "Estaca GPS",
       "hasCanvas": false,
-      "bodyTextLen": 233,
-      "bodyTextHash": "104a9eb43e08c29448288d3c6a904810e5ea8f236eb426206c2e2eb90dc10412",
-      "bodyTextPrefix": "Estaca GPS RETIRO SÃO JOAQUIM By Vitor Lucas RETIRO SÃO JOAQUIM ",
+      "bodyTextLen": 136,
+      "bodyTextHash": "a8d666411d12a34300ec745523b1b887ecb90bab76fd45f64f002e006d0335b6",
+      "bodyTextPrefix": "L449 · SÃO JOAQUIM GPS ±-- m Obtendo GPS… Permita o acesso à loc",
       "horizontalOverflow": false,
       "consoleErrors": [],
-      "pageErrors": [],
+      "pageErrors": [
+        "Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\nhttps://react.dev/link/hydration-mismatch\n\n  ...\n    <MatchImpl routeId=\"/\">\n      <MatchView router={{...}} match={{id:\"//\",ssr:true, ...}}>\n        <SafeFragment>\n          <SafeFragment fallback={null}>\n            <CatchBoundary getResetKey={function getResetKey} errorComponent={function AppErrorComponent} ...>\n              <SafeFragment fallback={function fallback}>\n                <MatchInnerImpl match={{id:\"//\",ssr:true, ...}}>\n                  <Lazy>\n                    <Index>\n                      <AppShell>\n                        <div className=\"mx-auto fl...\">\n                          <div className=\"flex min-h...\">\n                            <div className=\"relative f...\">\n                              <Splash>\n                                <div\n+                                 className=\"fixed inset-0 z-50 grid place-items-center bg-bg transition-opacity durat...\"\n-                                 className=\"absolute inset-0\"\n                                >\n                                  <div\n+                                   className=\"text-center\"\n-                                   className=\"absolute inset-0 z-0 bg-bg\"\n                                  >\n+                                   <img\n+                                     src=\"/app-icon-192.png\"\n+                                     alt=\"Ícone do app Estaca GPS\"\n+                                     width={80}\n+                                     height={80}\n+                                     className=\"mx-auto h-20 w-20 rounded-2xl\"\n+                                   >\n                                    ...\n                              ...\n                          ...\n"
+      ],
       "screenshot": "/workspace/screenshots/app-builder-preview.png"
     },
     "mobile": {
@@ -21,12 +23,14 @@
       "status": 200,
       "title": "Estaca GPS",
       "hasCanvas": false,
-      "bodyTextLen": 831,
-      "bodyTextHash": "3b69a05a531846e299d73c29059bb1fa565c400f7e9fae10ecd8b870edccfca2",
-      "bodyTextPrefix": "Estaca GPS RETIRO SÃO JOAQUIM By Vitor Lucas RETIRO SÃO JOAQUIM ",
+      "bodyTextLen": 928,
+      "bodyTextHash": "ecc7f864406eb8f6d4fac7a721443deb5df9a0275ed52fe902d8571bbf2457f4",
+      "bodyTextPrefix": "Estaca GPS L449 · SÃO JOAQUIM Barão de Itapacorá José Leandro Vi",
       "horizontalOverflow": false,
       "consoleErrors": [],
-      "pageErrors": [],
+      "pageErrors": [
+        "Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\nhttps://react.dev/link/hydration-mismatch\n\n  ...\n    <MatchImpl routeId=\"/\">\n      <MatchView router={{...}} match={{id:\"//\",ssr:true, ...}}>\n        <SafeFragment>\n          <SafeFragment fallback={null}>\n            <CatchBoundary getResetKey={function getResetKey} errorComponent={function AppErrorComponent} ...>\n              <SafeFragment fallback={function fallback}>\n                <MatchInnerImpl match={{id:\"//\",ssr:true, ...}}>\n                  <Lazy>\n                    <Index>\n                      <AppShell>\n                        <div className=\"mx-auto fl...\">\n                          <div className=\"flex min-h...\">\n                            <div className=\"relative f...\">\n                              <Splash>\n                                <div\n+                                 className=\"fixed inset-0 z-50 grid place-items-center bg-bg transition-opacity durat...\"\n-                                 className=\"absolute inset-0\"\n                                >\n                                  <div\n+                                   className=\"text-center\"\n-                                   className=\"absolute inset-0 z-0 bg-bg\"\n                                  >\n+                                   <img\n+                                     src=\"/app-icon-192.png\"\n+                                     alt=\"Ícone do app Estaca GPS\"\n+                                     width={80}\n+                                     height={80}\n+                                     className=\"mx-auto h-20 w-20 rounded-2xl\"\n+                                   >\n                                    ...\n                              ...\n                          ...\n"
+      ],
       "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
     }
   },
