@@ -5,12 +5,12 @@ import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.m
 import { c as relativeTime, l as todayISO, n as formatAccuracy, t as cn } from "./utils-C8V_sHGQ.mjs";
 import { _ as MapPin, b as LoaderCircle, d as Radio, h as Navigation, i as Users, v as LocateOff, y as LocateFixed } from "../_libs/lucide-react.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
-import { C as useLivePresence, T as useSnapshot, c as getDeviceId, d as loadLast, g as setCrewLabel, l as gpsQualityLabel, n as DEFAULT_CENTER, p as projectMercator, s as getCrewLabel, t as Button, u as haversineMeters, w as usePresencePing, x as useGps } from "./use-snapshot-DQd27t-P.mjs";
-import { t as buildCrew } from "./crew-rghTpeTd.mjs";
+import { C as usePresencePing, S as useLivePresence, b as useGps, c as getDeviceId, d as loadLast, h as setCrewLabel, l as gpsQualityLabel, n as DEFAULT_CENTER, p as projectMercator, s as getCrewLabel, t as Button, u as haversineMeters, w as useSnapshot } from "./use-snapshot-C57aYS-J.mjs";
+import { t as buildCrew } from "./crew-BAt7bSVX.mjs";
 import { t as ScreenLoader } from "./screen-loader-ByV97_vr.mjs";
 import { t as Input } from "./input-BKnui5bz.mjs";
-import { t as usePlaceLabel } from "./place-6tZmAX9m.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/mapa-AKKS49Cu.js
+import { t as usePlaceLabel } from "./place-Brg8vbtg.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/mapa-ByRqIRf3.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function GpsBanner({ gps, onRetry }) {

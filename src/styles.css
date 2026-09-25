@@ -135,25 +135,26 @@
 }
 
 .stake-balloon-inner {
-  background: linear-gradient(#fde68a, #f5c518);
+  background: #f5c518;
   color: #0f172a;
   font-weight: 800;
-  font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 10px;
-  border: 2px solid #0f172a;
-  box-shadow: 0 6px 16px rgb(0 0 0 / 0.35);
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1px solid #0f172a;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
   text-align: center;
   position: relative;
+  line-height: 1.1;
 }
 
 .stake-balloon-inner::after {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -8px;
+  bottom: -5px;
   transform: translateX(-50%);
-  border: 8px solid transparent;
+  border: 5px solid transparent;
   border-top-color: #f5c518;
   border-bottom-width: 0;
 }

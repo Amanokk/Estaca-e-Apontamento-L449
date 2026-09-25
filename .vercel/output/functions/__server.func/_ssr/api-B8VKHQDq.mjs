@@ -1,8 +1,9 @@
 import { n as TSS_SERVER_FUNCTION, t as createServerFn } from "./ssr.mjs";
 import { u as uid } from "./utils-C8V_sHGQ.mjs";
 import { c as WORKS, l as buildDescription, n as EQUIPMENT, s as STREETS, t as ACTIVITIES } from "./description--QsXGJw3.mjs";
+import { n as googleHybridTileUrl, r as latLngToTile } from "./googleMaps-CypfyYWU.mjs";
 import { a as number, n as array, o as object, r as boolean, s as string, t as _enum } from "../_libs/zod.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/api-DEmo0OIj.js
+//#region node_modules/.nitro/vite/services/ssr/assets/api-B8VKHQDq.js
 var createServerRpc = (serverFnMeta, splitImportFn) => {
 	const url = "/_serverFn/" + serverFnMeta.id;
 	return Object.assign(splitImportFn, {
@@ -331,7 +332,8 @@ var getSnapshot = createServerFn({ method: "GET" }).handler(getSnapshot_createSe
 			equipment: equipment.map(mapEq),
 			activities: activities.map(mapActivity),
 			apontamentos: apontamentos.map(mapApt),
-			presence: presence.map(mapPresence)
+			presence: presence.map(mapPresence),
+			live: true
 		};
 	} catch (err) {
 		console.error("[snapshot] falling back to catalog", err);
@@ -341,7 +343,8 @@ var getSnapshot = createServerFn({ method: "GET" }).handler(getSnapshot_createSe
 			equipment: EQUIPMENT,
 			activities: ACTIVITIES,
 			apontamentos: [],
-			presence: []
+			presence: [],
+			live: false
 		};
 	}
 });
@@ -659,5 +662,26 @@ var addActivity = createServerFn({ method: "POST" }).validator(object({
 	}
 	return { id };
 });
+var fetchMiniMap_createServerFn_handler = createServerRpc({
+	id: "e3c7cbbbf583b241f8de81fbc678e2517381766c4ff76ebc547d10594be7db08",
+	name: "fetchMiniMap",
+	filename: "src/lib/api.ts"
+}, (opts) => fetchMiniMap.__executeServer(opts));
+var fetchMiniMap = createServerFn({ method: "GET" }).validator(object({
+	lat: number(),
+	lng: number()
+})).handler(fetchMiniMap_createServerFn_handler, async ({ data }) => {
+	const z = 18;
+	const t = latLngToTile(data.lat, data.lng, z);
+	const url = googleHybridTileUrl(Math.floor(t.x), Math.floor(t.y), z, 0);
+	try {
+		const res = await fetch(url, { headers: { Accept: "image/*" } });
+		if (!res.ok) return { dataUrl: null };
+		const buf = Buffer.from(await res.arrayBuffer());
+		return { dataUrl: `data:${res.headers.get("content-type") || "image/jpeg"};base64,${buf.toString("base64")}` };
+	} catch {
+		return { dataUrl: null };
+	}
+});
 //#endregion
-export { addActivity_createServerFn_handler, addEquipment_createServerFn_handler, addStreet_createServerFn_handler, addWork_createServerFn_handler, closeApontamento_createServerFn_handler, deleteApontamento_createServerFn_handler, getPresence_createServerFn_handler, getSnapshot_createServerFn_handler, pingPresence_createServerFn_handler, reverseGeocode_createServerFn_handler, toggleStreet_createServerFn_handler, updateEquipment_createServerFn_handler, upsertApontamento_createServerFn_handler };
+export { addActivity_createServerFn_handler, addEquipment_createServerFn_handler, addStreet_createServerFn_handler, addWork_createServerFn_handler, closeApontamento_createServerFn_handler, deleteApontamento_createServerFn_handler, fetchMiniMap_createServerFn_handler, getPresence_createServerFn_handler, getSnapshot_createServerFn_handler, pingPresence_createServerFn_handler, reverseGeocode_createServerFn_handler, toggleStreet_createServerFn_handler, updateEquipment_createServerFn_handler, upsertApontamento_createServerFn_handler };

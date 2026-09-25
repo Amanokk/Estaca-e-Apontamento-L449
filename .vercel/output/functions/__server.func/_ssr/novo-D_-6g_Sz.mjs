@@ -6,14 +6,14 @@ import { l as todayISO, s as nowHHMM, t as cn, u as uid } from "./utils-C8V_sHGQ
 import { a as PV_PREFIXES, i as NOTE_CHIPS, l as buildDescription, o as QUANTITY_LABEL, r as KIND_LABEL } from "./description--QsXGJw3.mjs";
 import { D as ChevronDown, O as Check, b as LoaderCircle, j as ArrowLeft } from "../_libs/lucide-react.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
-import { E as useUpsertApontamento, S as useInvalidateSnapshot, T as useSnapshot, c as getDeviceId, d as loadLast, f as matchStreetByLabel, h as saveLast, r as addActivity, t as Button, x as useGps, y as useCloseApontamento } from "./use-snapshot-DQd27t-P.mjs";
-import { n as openForEquipment } from "./crew-rghTpeTd.mjs";
+import { T as useUpsertApontamento, b as useGps, c as getDeviceId, d as loadLast, f as matchStreetByLabel, m as saveLast, r as addActivity, t as Button, v as useCloseApontamento, w as useSnapshot, x as useInvalidateSnapshot } from "./use-snapshot-C57aYS-J.mjs";
+import { n as openForEquipment } from "./crew-BAt7bSVX.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { n as ChoiceList, t as ChipRow } from "./choice-DtEvLaaF.mjs";
 import { n as Label, r as Textarea, t as Input } from "./input-BKnui5bz.mjs";
-import { t as usePlaceLabel } from "./place-6tZmAX9m.mjs";
-import { n as Route$1 } from "./router-BG1a5Q9v.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/novo-DkpZne5w.js
+import { t as usePlaceLabel } from "./place-Brg8vbtg.mjs";
+import { n as Route$1 } from "./router-mtw9fEwv.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/novo-D_-6g_Sz.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ApontamentoForm({ draft, onChange, onSubmit, submitLabel = "Salvar", works, streets, equipment, activities, gps, locationLabel, saveState, onAddActivity, openHint, onEncerrar }) {

@@ -55,14 +55,18 @@ function Index() {
       <div className="relative flex min-h-0 flex-1 flex-col bg-bg text-fg">
         <Splash />
         <div className="absolute inset-0">
-          <StakeMap
-            position={position}
-            accuracy={accuracy}
-            match={match}
-            follow={follow}
-            onUserDrag={() => setFollow(false)}
-            recenterNonce={recenterNonce}
-          />
+          {!cameraOpen ? (
+            <StakeMap
+              position={position}
+              accuracy={accuracy}
+              match={match}
+              follow={follow}
+              onUserDrag={() => setFollow(false)}
+              recenterNonce={recenterNonce}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-bg" />
+          )}
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 pt-[max(12px,env(safe-area-inset-top))]">

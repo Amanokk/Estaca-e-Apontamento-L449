@@ -105,6 +105,7 @@ export type Snapshot = {
   activities: Activity[];
   apontamentos: Apontamento[];
   presence: Presence[];
+  live: boolean;
 };
 
 export type LastUsed = {

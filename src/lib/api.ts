@@ -14,6 +14,7 @@ import type {
   Street,
   Work,
 } from "./types";
+import { googleHybridTileUrl, latLngToTile } from "./googleMaps";
 import { uid } from "./utils";
 
 function asIds(v: unknown): string[] {
@@ -215,6 +216,7 @@ export const getSnapshot = createServerFn({ method: "GET" }).handler(async (): P
       activities: activities.map(mapActivity),
       apontamentos: apontamentos.map(mapApt),
       presence: presence.map(mapPresence),
+      live: true,
     };
   } catch (err) {
     console.error("[snapshot] falling back to catalog", err);
@@ -225,6 +227,7 @@ export const getSnapshot = createServerFn({ method: "GET" }).handler(async (): P
       activities: ACTIVITIES,
       apontamentos: [],
       presence: [],
+      live: false,
     };
   }
 });
@@ -503,4 +506,21 @@ export const addActivity = createServerFn({ method: "POST" })
       }
     }
     return { id };
+  });
+
+export const fetchMiniMap = createServerFn({ method: "GET" })
+  .validator(z.object({ lat: z.number(), lng: z.number() }))
+  .handler(async ({ data }) => {
+    const z = 18;
+    const t = latLngToTile(data.lat, data.lng, z);
+    const url = googleHybridTileUrl(Math.floor(t.x), Math.floor(t.y), z, 0);
+    try {
+      const res = await fetch(url, { headers: { Accept: "image/*" } });
+      if (!res.ok) return { dataUrl: null as string | null };
+      const buf = Buffer.from(await res.arrayBuffer());
+      const mime = res.headers.get("content-type") || "image/jpeg";
+      return { dataUrl: `data:${mime};base64,${buf.toString("base64")}` };
+    } catch {
+      return { dataUrl: null as string | null };
+    }
   });

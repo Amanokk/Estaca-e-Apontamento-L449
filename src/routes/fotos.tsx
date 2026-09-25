@@ -99,7 +99,8 @@ function FotosPage() {
               {p.lat !== null && p.lng !== null && (
                 <MiniMapThumb
                   center={{ lat: p.lat, lng: p.lng }}
-                  className="h-24 w-24 shrink-0 rounded-xl bg-subtle object-cover"
+                  size={96}
+                  className="shrink-0 rounded-xl"
                 />
               )}
 

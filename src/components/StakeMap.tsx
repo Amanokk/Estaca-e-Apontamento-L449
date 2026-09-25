@@ -5,12 +5,10 @@ import { haversine } from "@/lib/geo";
 import { STREETS } from "@/data/streets";
 import { stakesInRect } from "@/lib/stakeIndex";
 import { PROJECT_CENTER, type Match } from "@/lib/findStake";
-import { GOOGLE_LABELS_TILES, GOOGLE_SAT_TILES } from "@/lib/googleMaps";
+import { GOOGLE_HYBRID_TILES } from "@/lib/googleMaps";
 
-const LABEL_MIN_ZOOM = 18;
-const STAKE_MIN_ZOOM = 16;
-const STREET_NAME_MIN_ZOOM = 16;
-const MAX_VISIBLE_STAKES = 90;
+const STAKE_MIN_ZOOM = 18;
+const MAX_VISIBLE_STAKES = 16;
 
 type Props = {
   position: LatLng | null;
@@ -21,17 +19,11 @@ type Props = {
   recenterNonce: number;
 };
 
-function streetMid(path: LatLng[]): LatLng {
-  const i = Math.max(0, Math.floor((path.length - 1) / 2));
-  return path[i] ?? path[0];
-}
-
 export function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<import("leaflet").Map | null>(null);
   const LRef = useRef<typeof import("leaflet") | null>(null);
   const streetsLayerRef = useRef<import("leaflet").LayerGroup | null>(null);
-  const streetNamesRef = useRef<import("leaflet").LayerGroup | null>(null);
   const highlightRef = useRef<import("leaflet").Polyline | null>(null);
   const balloonRef = useRef<import("leaflet").Marker | null>(null);
   const userRef = useRef<import("leaflet").CircleMarker | null>(null);
@@ -55,67 +47,44 @@ export function StakeMap({ position, accuracy, match, follow, onUserDrag, recent
         zoom: 18,
         zoomControl: false,
         attributionControl: false,
+        preferCanvas: true,
+        zoomAnimation: false,
+        markerZoomAnimation: false,
+        fadeAnimation: false,
       });
       L.control.zoom({ position: "bottomleft" }).addTo(map);
       requestAnimationFrame(() => map.invalidateSize());
 
-      L.tileLayer(GOOGLE_SAT_TILES, {
+      L.tileLayer(GOOGLE_HYBRID_TILES, {
         subdomains: ["0", "1", "2", "3"],
         maxZoom: 21,
-        maxNativeZoom: 21,
+        maxNativeZoom: 20,
+        updateWhenIdle: true,
+        keepBuffer: 1,
         attribution: "Google",
-      }).addTo(map);
-
-      L.tileLayer(GOOGLE_LABELS_TILES, {
-        subdomains: ["0", "1", "2", "3"],
-        maxZoom: 21,
-        maxNativeZoom: 21,
-        opacity: 1,
-        className: "google-labels",
       }).addTo(map);
 
       const streets = L.layerGroup().addTo(map);
       for (const s of STREETS) {
         L.polyline(
           s.path.map((p) => [p.lat, p.lng] as [number, number]),
-          { color: "#38bdf8", weight: 3, opacity: 0.85, interactive: false },
+          { color: "#38bdf8", weight: 3, opacity: 0.7, interactive: false },
         ).addTo(streets);
       }
       streetsLayerRef.current = streets;
-      streetNamesRef.current = L.layerGroup().addTo(map);
       stakeLayerRef.current = L.layerGroup().addTo(map);
 
       map.on("dragstart", () => onUserDrag());
 
-      const renderStreetNames = () => {
-        const layer = streetNamesRef.current;
-        if (!layer) return;
-        layer.clearLayers();
-        if (map.getZoom() < STREET_NAME_MIN_ZOOM) return;
-        for (const s of STREETS) {
-          const mid = streetMid(s.path);
-          const short = s.name.replace(/^Rua\s+/i, "");
-          L.marker([mid.lat, mid.lng], {
-            icon: L.divIcon({
-              className: "street-name-label",
-              html: `<span>${short}</span>`,
-              iconSize: [160, 18],
-              iconAnchor: [80, 9],
-            }),
-            interactive: false,
-            keyboard: false,
-          }).addTo(layer);
-        }
-      };
-
+      const canvas = L.canvas({ padding: 0.3 });
+      let renderTimer: number | null = null;
       const renderStakes = () => {
         const layer = stakeLayerRef.current;
         if (!layer) return;
         layer.clearLayers();
-        const bounds = map.getBounds();
         const zoom = map.getZoom();
         if (zoom < STAKE_MIN_ZOOM) return;
-        const showLabel = zoom >= LABEL_MIN_ZOOM;
+        const bounds = map.getBounds();
         const visible = stakesInRect(
           {
             south: bounds.getSouth(),
@@ -126,34 +95,26 @@ export function StakeMap({ position, accuracy, match, follow, onUserDrag, recent
           MAX_VISIBLE_STAKES,
         );
         for (const st of visible) {
-          const m = L.circleMarker([st.pos.lat, st.pos.lng], {
-            radius: showLabel ? 7 : 4,
+          L.circleMarker([st.pos.lat, st.pos.lng], {
+            radius: 3,
             color: "#0f172a",
-            weight: 1.5,
-            fillColor: "#f8fafc",
-            fillOpacity: 0.95,
+            weight: 1,
+            fillColor: "#e2e8f0",
+            fillOpacity: 0.9,
             interactive: false,
-          });
-          if (showLabel) {
-            m.bindTooltip(`E-${st.number}`, {
-              permanent: true,
-              direction: "top",
-              offset: [0, -8],
-              className: "stake-label",
-            });
-          }
-          m.addTo(layer);
+            renderer: canvas,
+          }).addTo(layer);
         }
       };
 
-      const render = () => {
-        renderStakes();
-        renderStreetNames();
+      const scheduleRender = () => {
+        if (renderTimer) window.clearTimeout(renderTimer);
+        renderTimer = window.setTimeout(renderStakes, 120);
       };
 
-      map.on("moveend", render);
-      map.on("zoomend", render);
-      render();
+      map.on("moveend", scheduleRender);
+      map.on("zoomend", scheduleRender);
+      renderStakes();
       mapRef.current = map;
     });
 
@@ -183,8 +144,8 @@ export function StakeMap({ position, accuracy, match, follow, onUserDrag, recent
     } else {
       userRef.current.setLatLng([position.lat, position.lng]);
       const last = lastCenterRef.current;
-      if (followRef.current && (!last || haversine(last, position) > 8)) {
-        map.panTo([position.lat, position.lng]);
+      if (followRef.current && (!last || haversine(last, position) > 18)) {
+        map.panTo([position.lat, position.lng], { animate: false });
         lastCenterRef.current = position;
       }
     }
@@ -233,8 +194,8 @@ export function StakeMap({ position, accuracy, match, follow, onUserDrag, recent
     const icon = L.divIcon({
       className: "stake-balloon",
       html: `<div class="stake-balloon-inner">${text}</div>`,
-      iconSize: [88, 44],
-      iconAnchor: [44, 44],
+      iconSize: [56, 28],
+      iconAnchor: [28, 30],
     });
     if (!balloonRef.current) {
       balloonRef.current = L.marker([match.snapped.lat, match.snapped.lng], {

@@ -1,8 +1,10 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
+import { t as cn } from "./utils-C8V_sHGQ.mjs";
+import { n as googleHybridTileUrl, r as latLngToTile } from "./googleMaps-CypfyYWU.mjs";
 import { t as require_piexif } from "../_libs/piexifjs.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/MiniMapThumb-BlQA3Jbp.js
+//#region node_modules/.nitro/vite/services/ssr/assets/MiniMapThumb-Crw4FNrw.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var import_piexif = /* @__PURE__ */ __toESM(require_piexif());
@@ -201,34 +203,54 @@ function useOnlineStatus() {
 	}, []);
 	return online;
 }
-var GOOGLE_MAPS_KEY = "AIzaSyBmvJph4LmrbtW7skeczzpBIyb9WWzFKo4";
-/** Satellite imagery (no labels). */
-var GOOGLE_SAT_TILES = "https://mt{s}.google.com/vt/lyrs=s&hl=pt-BR&gl=BR&x={x}&y={y}&z={z}";
-/** Roads + street names overlay on top of satellite. */
-var GOOGLE_LABELS_TILES = "https://mt{s}.google.com/vt/lyrs=h&hl=pt-BR&gl=BR&x={x}&y={y}&z={z}";
-function googleStaticMapUrl(lat, lng, size = 320) {
-	const s = Math.max(120, Math.min(640, Math.round(size)));
-	return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=17&size=${s}x${s}&scale=2&maptype=hybrid&language=pt-BR&region=BR&markers=color:red%7C${lat},${lng}&key=${GOOGLE_MAPS_KEY}`;
-}
-function loadGoogleStaticMap(lat, lng, size = 320) {
-	return new Promise((resolve, reject) => {
-		const img = new Image();
-		img.crossOrigin = "anonymous";
-		img.onload = () => resolve(img);
-		img.onerror = () => reject(/* @__PURE__ */ new Error("static map"));
-		img.src = googleStaticMapUrl(lat, lng, size);
-	});
-}
+var TILE = 256;
+var Z = 18;
 function MiniMapThumb({ center, className, style, size = 160 }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-		src: googleStaticMapUrl(center.lat, center.lng, size),
-		alt: "Mapa da localização",
-		width: size,
-		height: size,
-		className,
-		style,
-		decoding: "async"
+	const { x, y } = latLngToTile(center.lat, center.lng, Z);
+	const tx = Math.floor(x);
+	const ty = Math.floor(y);
+	const fracX = x - tx;
+	const fracY = y - ty;
+	const scale = size / TILE;
+	const originX = size / 2 - (1 + fracX) * TILE * scale;
+	const originY = size / 2 - (1 + fracY) * TILE * scale;
+	const tiles = [];
+	for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) tiles.push({
+		dx,
+		dy
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: cn("relative overflow-hidden bg-subtle", className),
+		style: {
+			width: size,
+			height: size,
+			...style
+		},
+		"aria-label": "Mapa da localização",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "absolute",
+			style: {
+				width: TILE * 3 * scale,
+				height: TILE * 3 * scale,
+				left: originX,
+				top: originY
+			},
+			children: tiles.map(({ dx, dy }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+				src: googleHybridTileUrl(tx + dx, ty + dy, Z, Math.abs(dx + dy) % 4),
+				alt: "",
+				width: TILE * scale,
+				height: TILE * scale,
+				draggable: false,
+				className: "absolute",
+				style: {
+					left: (dx + 1) * TILE * scale,
+					top: (dy + 1) * TILE * scale,
+					width: TILE * scale,
+					height: TILE * scale
+				}
+			}, `${dx}:${dy}`))
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "pointer-events-none absolute left-1/2 top-1/2 z-10 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gps ring-2 ring-fg" })]
 	});
 }
 //#endregion
-export { deletePhoto as a, loadGoogleStaticMap as c, savePhoto as d, sharePhoto as f, addExif as i, putPhoto as l, GOOGLE_SAT_TILES as n, downloadDataUrl as o, useOnlineStatus as p, MiniMapThumb as r, listPhotos as s, GOOGLE_LABELS_TILES as t, retouchEstaca as u };
+export { listPhotos as a, savePhoto as c, downloadDataUrl as i, sharePhoto as l, addExif as n, putPhoto as o, deletePhoto as r, retouchEstaca as s, MiniMapThumb as t, useOnlineStatus as u };

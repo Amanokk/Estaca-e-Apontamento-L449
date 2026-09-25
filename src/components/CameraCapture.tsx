@@ -4,7 +4,7 @@ import { downloadDataUrl } from "@/lib/savePhoto";
 import { addExif } from "@/lib/exif";
 import { addPhotoLog } from "@/lib/photoLog";
 import { putPhoto } from "@/lib/photoStore";
-import { loadGoogleStaticMap } from "@/lib/googleMaps";
+import { fetchMiniMap } from "@/lib/api";
 import { MiniMapThumb } from "@/components/MiniMapThumb";
 import {
   type CameraSettings,
@@ -39,8 +39,8 @@ const StampClock = memo(function StampClock({ settings }: { settings: CameraSett
 
 function mockCameraStream(): MediaStream {
   const canvas = document.createElement("canvas");
-  canvas.width = 1920;
-  canvas.height = 1080;
+  canvas.width = 1280;
+  canvas.height = 720;
   const ctx = canvas.getContext("2d")!;
   let frame = 0;
   let raf = 0;
@@ -66,7 +66,7 @@ function mockCameraStream(): MediaStream {
     raf = requestAnimationFrame(draw);
   };
   draw();
-  const stream = canvas.captureStream(24);
+  const stream = canvas.captureStream(15);
   const stop = stream.getTracks()[0]?.stop.bind(stream.getTracks()[0]);
   stream.getTracks()[0].stop = () => {
     cancelAnimationFrame(raf);
@@ -164,13 +164,22 @@ export function CameraCapture({ stamp, onClose }: { stamp: CameraStamp; onClose:
       mapImgRef.current = null;
       return;
     }
-    void loadGoogleStaticMap(stamp.lat, stamp.lng, 320)
-      .then((img) => {
-        mapImgRef.current = img;
+    let cancelled = false;
+    void fetchMiniMap({ data: { lat: stamp.lat, lng: stamp.lng } })
+      .then((res) => {
+        if (cancelled || !res.dataUrl) return;
+        const img = new Image();
+        img.onload = () => {
+          if (!cancelled) mapImgRef.current = img;
+        };
+        img.src = res.dataUrl;
       })
       .catch(() => {
-        mapImgRef.current = null;
+        if (!cancelled) mapImgRef.current = null;
       });
+    return () => {
+      cancelled = true;
+    };
   }, [stamp.lat, stamp.lng]);
 
   const attachingRef = useRef(false);
@@ -467,13 +476,10 @@ export function CameraCapture({ stamp, onClose }: { stamp: CameraStamp; onClose:
         {stamp.lat !== null && stamp.lng !== null && settings.showMap && (
           <MiniMapThumb
             center={{ lat: stamp.lat, lng: stamp.lng }}
-            className={`absolute bottom-3 rounded-xl object-cover ring-1 ring-fg/25 ${
+            size={Math.round(96 * SIZE_FACTOR[settings.size])}
+            className={`absolute bottom-3 z-10 rounded-xl ring-1 ring-fg/25 ${
               settings.mapSide === "direita" ? "right-3" : "left-3"
             }`}
-            style={{
-              height: `${6 * SIZE_FACTOR[settings.size]}rem`,
-              width: `${6 * SIZE_FACTOR[settings.size]}rem`,
-            }}
           />
         )}
         <div

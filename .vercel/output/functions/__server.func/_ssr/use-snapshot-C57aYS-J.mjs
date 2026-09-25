@@ -1,13 +1,12 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { a as require_jsx_runtime, i as useQueryClient, n as useQuery, t as useMutation } from "../_libs/react+tanstack__react-query.mjs";
-import { n as TSS_SERVER_FUNCTION, r as getServerFnById, t as createServerFn } from "./ssr.mjs";
 import { t as cva } from "../_libs/class-variance-authority+clsx.mjs";
 import { t as cn, u as uid } from "./utils-C8V_sHGQ.mjs";
 import { c as WORKS, l as buildDescription, n as EQUIPMENT, s as STREETS, t as ACTIVITIES } from "./description--QsXGJw3.mjs";
-import { a as number, n as array, o as object, r as boolean, s as string, t as _enum } from "../_libs/zod.mjs";
+import { a as closeApontamento, c as getPresence, f as toggleStreet$1, i as addWork$1, l as getSnapshot, m as upsertApontamento, n as addEquipment$1, o as deleteApontamento, p as updateEquipment$1, r as addStreet$1, t as addActivity$1, u as pingPresence } from "./api-BJJ-G5gd.mjs";
 import { t as Slot } from "../_libs/radix-ui__react-slot.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/use-snapshot-DQd27t-P.js
+//#region node_modules/.nitro/vite/services/ssr/assets/use-snapshot-C57aYS-J.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-[background-color,color,box-shadow,transform,opacity] duration-150 ease-out disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-[0.96]", {
@@ -256,103 +255,6 @@ function saveLast(last) {
 	if (typeof localStorage === "undefined") return;
 	localStorage.setItem(LAST_KEY, JSON.stringify(last));
 }
-var createSsrRpc = (functionId) => {
-	const url = "/_serverFn/" + functionId;
-	const serverFnMeta = { id: functionId };
-	const fn = async (...args) => {
-		return (await getServerFnById(functionId, { origin: "server" }))(...args);
-	};
-	return Object.assign(fn, {
-		url,
-		serverFnMeta,
-		[TSS_SERVER_FUNCTION]: true
-	});
-};
-var getSnapshot = createServerFn({ method: "GET" }).handler(createSsrRpc("8d42ed533f9e880af7d4b9c7f833591bfa25f76948cdffd848723661f020b3dc"));
-var saveSchema = object({
-	id: string().min(1),
-	date: string().min(8),
-	start: string().min(4),
-	end: string().nullable(),
-	workId: string(),
-	streetId: string(),
-	equipmentId: string(),
-	activityId: string(),
-	estaca: string(),
-	pv: string(),
-	quantity: number().nullable(),
-	notes: string(),
-	lat: number().nullable(),
-	lng: number().nullable(),
-	accuracy: number().nullable(),
-	locationLabel: string(),
-	deviceId: string()
-});
-var upsertApontamento = createServerFn({ method: "POST" }).validator(saveSchema).handler(createSsrRpc("ce847625bb57870d3161edb5b1541a32a2202cd294a7b5430ce2b1fde6de1c25"));
-var closeApontamento = createServerFn({ method: "POST" }).validator(object({
-	id: string(),
-	end: string()
-})).handler(createSsrRpc("5c192a039b56d8e46a700abb17a5ffee18cbbf2d67bd0f12298a306bdd13d0e7"));
-var deleteApontamento = createServerFn({ method: "POST" }).validator(object({ id: string() })).handler(createSsrRpc("c0663af8e30866edb8347b722afe0e997ea4d393f77a8ef50929d7c835316f64"));
-var presenceSchema = object({
-	deviceId: string().min(1),
-	label: string(),
-	lat: number(),
-	lng: number(),
-	accuracy: number().nullable(),
-	workId: string().nullable(),
-	equipmentId: string().nullable(),
-	streetId: string().nullable(),
-	activityId: string().nullable(),
-	apontamentoId: string().nullable()
-});
-var pingPresence = createServerFn({ method: "POST" }).validator(presenceSchema).handler(createSsrRpc("eef9a9df9c5ee2b86cde8892389b36bf627bdf3a94ed759df0f5daccf6550719"));
-var getPresence = createServerFn({ method: "GET" }).handler(createSsrRpc("00292b52dd7688df04a75490ecb496222dc0fa08d0395f0171ed923baec56cf8"));
-var reverseGeocode = createServerFn({ method: "POST" }).validator(object({
-	lat: number(),
-	lng: number()
-})).handler(createSsrRpc("9adbf68a15d15b1c3afe18f38f6440b0816972ca3405db633a16ff37230a28af"));
-var addWork$1 = createServerFn({ method: "POST" }).validator(object({
-	code: string().min(1),
-	name: string().min(1)
-})).handler(createSsrRpc("bcb49d7dde462ae0dc5126adee0ca7fccca81b652363a307d1137dada119b28a"));
-var addStreet$1 = createServerFn({ method: "POST" }).validator(object({
-	name: string().min(1),
-	workId: string()
-})).handler(createSsrRpc("9cff1b772483fd6081dbf3a0cabbcfdfb0caa742731a4ba634c078ffca059d09"));
-var addEquipment$1 = createServerFn({ method: "POST" }).validator(object({
-	name: string().min(1),
-	code: string().min(1),
-	kind: _enum([
-		"retro",
-		"rolo",
-		"basculante",
-		"pipa",
-		"van",
-		"truck"
-	]),
-	activityIds: array(string())
-})).handler(createSsrRpc("248ee50e388b9300d95f63360cb601a04b13b11dedadbe2c9f883c8601c0a51d"));
-var updateEquipment$1 = createServerFn({ method: "POST" }).validator(object({
-	id: string(),
-	name: string().optional(),
-	code: string().optional(),
-	kind: _enum([
-		"retro",
-		"rolo",
-		"basculante",
-		"pipa",
-		"van",
-		"truck"
-	]).optional(),
-	activityIds: array(string()).optional(),
-	active: boolean().optional()
-})).handler(createSsrRpc("3d1c7dda79a7fdc17ceaf7ce20ff72734e2352e3f10bb2afdbfade1555773006"));
-var toggleStreet$1 = createServerFn({ method: "POST" }).validator(object({ id: string() })).handler(createSsrRpc("1a2e2f9a5e6c0cc2b16ff18ef04730889735175557329211235f34cd2ae03aab"));
-var addActivity$1 = createServerFn({ method: "POST" }).validator(object({
-	name: string().min(1),
-	equipmentId: string().optional()
-})).handler(createSsrRpc("572516a8071f85131a32827d9675f8cfa4007eecf89ca944dfe1c2fd25c2a9e9"));
 var KEY = "l449.field-db.v1";
 function emptyStore() {
 	return {
@@ -381,7 +283,8 @@ function seedSnapshot() {
 		equipment: EQUIPMENT,
 		activities: ACTIVITIES,
 		apontamentos: [],
-		presence: []
+		presence: [],
+		live: false
 	};
 }
 function readStore() {
@@ -434,7 +337,8 @@ function localSnapshot() {
 		equipment,
 		activities,
 		apontamentos: store.apontamentos.filter((a) => !deleted.has(a.id)),
-		presence: []
+		presence: [],
+		live: false
 	};
 }
 function buildRow(data, snap) {
@@ -618,7 +522,8 @@ function mergeSnapshots(local, remote) {
 		equipment: mergeById(remote.equipment, local.equipment),
 		activities: mergeById(remote.activities, local.activities),
 		apontamentos: [...remoteApts, ...localOnly],
-		presence: remote.presence
+		presence: remote.presence,
+		live: remote.live
 	};
 }
 function persistMergedApontamentos(rows) {
@@ -636,14 +541,25 @@ async function tryRemote(fn) {
 async function fetchSnapshot() {
 	const local = typeof window === "undefined" ? seedSnapshot() : localSnapshot();
 	const remote = await tryRemote(() => getSnapshot());
-	if (!remote) return local;
+	if (!remote?.live) return {
+		...local,
+		live: false
+	};
 	const merged = mergeSnapshots(local, remote);
 	persistMergedApontamentos(merged.apontamentos);
-	return merged;
+	return {
+		...merged,
+		live: true
+	};
 }
 async function saveApontamento(data) {
-	const row = upsertApontamentoLocal(data);
-	return await tryRemote(() => upsertApontamento({ data })) ?? row;
+	try {
+		const remote = await upsertApontamento({ data });
+		upsertApontamentoLocal(data);
+		return remote;
+	} catch {
+		return upsertApontamentoLocal(data);
+	}
 }
 async function endApontamento(id, end) {
 	closeApontamentoLocal(id, end);
@@ -700,9 +616,9 @@ function useSnapshot(_initial, live = false) {
 	return useQuery({
 		queryKey: SNAPSHOT_KEY,
 		queryFn: () => fetchSnapshot(),
-		staleTime: live ? 8e3 : 6e4,
-		refetchOnWindowFocus: false,
-		refetchInterval: live ? 12e3 : false,
+		staleTime: live ? 4e3 : 3e4,
+		refetchOnWindowFocus: true,
+		refetchInterval: live ? 5e3 : false,
 		placeholderData: (prev) => prev ?? seedSnapshot()
 	});
 }
@@ -796,4 +712,4 @@ function usePresencePing(gps, last) {
 	]);
 }
 //#endregion
-export { useLivePresence as C, useUpsertApontamento as E, useInvalidateSnapshot as S, useSnapshot as T, toggleStreet as _, addStreet as a, useDeleteApontamento as b, getDeviceId as c, loadLast as d, matchStreetByLabel as f, setCrewLabel as g, saveLast as h, addEquipment as i, gpsQualityLabel as l, reverseGeocode as m, DEFAULT_CENTER as n, addWork as o, projectMercator as p, addActivity as r, getCrewLabel as s, Button as t, haversineMeters as u, updateEquipment as v, usePresencePing as w, useGps as x, useCloseApontamento as y };
+export { usePresencePing as C, useLivePresence as S, useUpsertApontamento as T, updateEquipment as _, addStreet as a, useGps as b, getDeviceId as c, loadLast as d, matchStreetByLabel as f, toggleStreet as g, setCrewLabel as h, addEquipment as i, gpsQualityLabel as l, saveLast as m, DEFAULT_CENTER as n, addWork as o, projectMercator as p, addActivity as r, getCrewLabel as s, Button as t, haversineMeters as u, useCloseApontamento as v, useSnapshot as w, useInvalidateSnapshot as x, useDeleteApontamento as y };

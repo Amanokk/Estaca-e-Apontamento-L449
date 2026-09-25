@@ -4,8 +4,8 @@ import { y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
 import { C as Download, O as Check, c as Share2, j as ArrowLeft, m as Pencil, o as Trash2 } from "../_libs/lucide-react.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
-import { a as deletePhoto, d as savePhoto, f as sharePhoto, i as addExif, l as putPhoto, p as useOnlineStatus, r as MiniMapThumb, s as listPhotos, u as retouchEstaca } from "./MiniMapThumb-BlQA3Jbp.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/fotos-BLOt9fQn.js
+import { a as listPhotos, c as savePhoto, l as sharePhoto, n as addExif, o as putPhoto, r as deletePhoto, s as retouchEstaca, t as MiniMapThumb, u as useOnlineStatus } from "./MiniMapThumb-Crw4FNrw.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/fotos-aIVjuTX2.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function fmt(iso) {
@@ -95,7 +95,8 @@ function FotosPage() {
 									lat: p.lat,
 									lng: p.lng
 								},
-								className: "h-24 w-24 shrink-0 rounded-xl bg-subtle object-cover"
+								size: 96,
+								className: "shrink-0 rounded-xl"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dl", {
 								className: "min-w-0 flex-1 space-y-0.5 text-[12px] text-muted",
 								children: [

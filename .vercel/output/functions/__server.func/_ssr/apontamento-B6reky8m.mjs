@@ -5,10 +5,10 @@ import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.m
 import { i as formatDuration, l as todayISO, o as minutesBetween, r as formatDateBR, s as nowHHMM } from "./utils-C8V_sHGQ.mjs";
 import { T as Clock, p as Plus, s as Square } from "../_libs/lucide-react.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
-import { T as useSnapshot, d as loadLast, t as Button, y as useCloseApontamento } from "./use-snapshot-DQd27t-P.mjs";
-import { n as openForEquipment } from "./crew-rghTpeTd.mjs";
+import { d as loadLast, t as Button, v as useCloseApontamento, w as useSnapshot } from "./use-snapshot-C57aYS-J.mjs";
+import { n as openForEquipment } from "./crew-BAt7bSVX.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/apontamento-Cd11Ci3w.js
+//#region node_modules/.nitro/vite/services/ssr/assets/apontamento-B6reky8m.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function Home() {
@@ -36,13 +36,19 @@ function Home() {
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 				className: "font-display text-2xl font-semibold leading-none text-fg",
 				children: formatDateBR(today)
-			})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-				className: "text-sm tabular-nums text-muted",
-				children: [
-					rows.length,
-					" · ",
-					formatDuration(hours)
-				]
+			})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "text-right",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: `text-xs font-semibold ${data?.live ? "text-ok" : "text-muted"}`,
+					children: data?.live ? "Save global" : "Só neste aparelho"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					className: "text-sm tabular-nums text-muted",
+					children: [
+						rows.length,
+						" · ",
+						formatDuration(hours)
+					]
+				})]
 			})]
 		})
 	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {

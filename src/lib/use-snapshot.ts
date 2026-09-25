@@ -20,9 +20,9 @@ export function useSnapshot(_initial?: Snapshot, live = false) {
   return useQuery({
     queryKey: SNAPSHOT_KEY,
     queryFn: () => fetchSnapshot(),
-    staleTime: live ? 8_000 : 60_000,
-    refetchOnWindowFocus: false,
-    refetchInterval: live ? 12_000 : false,
+    staleTime: live ? 4_000 : 30_000,
+    refetchOnWindowFocus: true,
+    refetchInterval: live ? 5_000 : false,
     placeholderData: (prev) => prev ?? seedSnapshot(),
   });
 }

@@ -72,6 +72,7 @@ export function seedSnapshot(): Snapshot {
     activities: ACTIVITIES,
     apontamentos: [],
     presence: [],
+    live: false,
   };
 }
 
@@ -128,6 +129,7 @@ export function localSnapshot(): Snapshot {
     activities,
     apontamentos: store.apontamentos.filter((a) => !deleted.has(a.id)),
     presence: [],
+    live: false,
   };
 }
 
@@ -318,6 +320,7 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot): Snapshot {
     activities: mergeById(remote.activities, local.activities),
     apontamentos: [...remoteApts, ...localOnly],
     presence: remote.presence,
+    live: remote.live,
   };
 }
 

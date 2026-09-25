@@ -2,20 +2,20 @@ import { o as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
+import { t as GOOGLE_HYBRID_TILES } from "./googleMaps-CypfyYWU.mjs";
 import { E as ClipboardList, k as Camera, l as Settings2, n as ZoomOut, r as X, t as ZoomIn, y as LocateFixed } from "../_libs/lucide-react.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
-import { c as loadGoogleStaticMap, i as addExif, l as putPhoto, n as GOOGLE_SAT_TILES, o as downloadDataUrl, p as useOnlineStatus, r as MiniMapThumb, t as GOOGLE_LABELS_TILES } from "./MiniMapThumb-BlQA3Jbp.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-DH2zfY39.js
+import { s as fetchMiniMap } from "./api-BJJ-G5gd.mjs";
+import { i as downloadDataUrl, n as addExif, o as putPhoto, t as MiniMapThumb, u as useOnlineStatus } from "./MiniMapThumb-Crw4FNrw.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-C8rRkLRi.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function Splash() {
-	const [visible, setVisible] = (0, import_react.useState)(() => {
-		if (typeof window === "undefined") return false;
-		return !window.sessionStorage.getItem("l449.splash");
-	});
+	const [visible, setVisible] = (0, import_react.useState)(false);
 	const [fading, setFading] = (0, import_react.useState)(false);
 	(0, import_react.useEffect)(() => {
-		if (!visible) return;
+		if (window.sessionStorage.getItem("l449.splash")) return;
+		setVisible(true);
 		const t1 = setTimeout(() => setFading(true), 700);
 		const t2 = setTimeout(() => {
 			setVisible(false);
@@ -25,7 +25,7 @@ function Splash() {
 			clearTimeout(t1);
 			clearTimeout(t2);
 		};
-	}, [visible]);
+	}, []);
 	if (!visible) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: `fixed inset-0 z-50 grid place-items-center bg-bg transition-opacity duration-300 ${fading ? "opacity-0" : "opacity-100"}`,
@@ -141,8 +141,8 @@ var StampClock = (0, import_react.memo)(function StampClock({ settings }) {
 });
 function mockCameraStream() {
 	const canvas = document.createElement("canvas");
-	canvas.width = 1920;
-	canvas.height = 1080;
+	canvas.width = 1280;
+	canvas.height = 720;
 	const ctx = canvas.getContext("2d");
 	let frame = 0;
 	let raf = 0;
@@ -166,7 +166,7 @@ function mockCameraStream() {
 		raf = requestAnimationFrame(draw);
 	};
 	draw();
-	const stream = canvas.captureStream(24);
+	const stream = canvas.captureStream(15);
 	const stop = stream.getTracks()[0]?.stop.bind(stream.getTracks()[0]);
 	stream.getTracks()[0].stop = () => {
 		cancelAnimationFrame(raf);
@@ -264,11 +264,23 @@ function CameraCapture({ stamp, onClose }) {
 			mapImgRef.current = null;
 			return;
 		}
-		loadGoogleStaticMap(stamp.lat, stamp.lng, 320).then((img) => {
-			mapImgRef.current = img;
+		let cancelled = false;
+		fetchMiniMap({ data: {
+			lat: stamp.lat,
+			lng: stamp.lng
+		} }).then((res) => {
+			if (cancelled || !res.dataUrl) return;
+			const img = new Image();
+			img.onload = () => {
+				if (!cancelled) mapImgRef.current = img;
+			};
+			img.src = res.dataUrl;
 		}).catch(() => {
-			mapImgRef.current = null;
+			if (!cancelled) mapImgRef.current = null;
 		});
+		return () => {
+			cancelled = true;
+		};
 	}, [stamp.lat, stamp.lng]);
 	const attachingRef = (0, import_react.useRef)(false);
 	const attachStream = (0, import_react.useCallback)(async () => {
@@ -548,11 +560,8 @@ function CameraCapture({ stamp, onClose }) {
 							lat: stamp.lat,
 							lng: stamp.lng
 						},
-						className: `absolute bottom-3 rounded-xl object-cover ring-1 ring-fg/25 ${settings.mapSide === "direita" ? "right-3" : "left-3"}`,
-						style: {
-							height: `${6 * SIZE_FACTOR[settings.size]}rem`,
-							width: `${6 * SIZE_FACTOR[settings.size]}rem`
-						}
+						size: Math.round(96 * SIZE_FACTOR[settings.size]),
+						className: `absolute bottom-3 z-10 rounded-xl ring-1 ring-fg/25 ${settings.mapSide === "direita" ? "right-3" : "left-3"}`
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "absolute bottom-3 right-3 rounded-xl px-3 py-2 text-right font-semibold leading-snug text-fg ring-1 ring-fg/15",
@@ -1426,19 +1435,13 @@ function findNearestStake(pos, maxDist = 60) {
 function quantize(p) {
 	return `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`;
 }
-var LABEL_MIN_ZOOM = 18;
-var STAKE_MIN_ZOOM = 16;
-var STREET_NAME_MIN_ZOOM = 16;
-var MAX_VISIBLE_STAKES = 90;
-function streetMid(path) {
-	return path[Math.max(0, Math.floor((path.length - 1) / 2))] ?? path[0];
-}
+var STAKE_MIN_ZOOM = 18;
+var MAX_VISIBLE_STAKES = 16;
 function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce }) {
 	const hostRef = (0, import_react.useRef)(null);
 	const mapRef = (0, import_react.useRef)(null);
 	const LRef = (0, import_react.useRef)(null);
 	const streetsLayerRef = (0, import_react.useRef)(null);
-	const streetNamesRef = (0, import_react.useRef)(null);
 	const highlightRef = (0, import_react.useRef)(null);
 	const balloonRef = (0, import_react.useRef)(null);
 	const userRef = (0, import_react.useRef)(null);
@@ -1458,10 +1461,15 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 				center: [PROJECT_CENTER.lat, PROJECT_CENTER.lng],
 				zoom: 18,
 				zoomControl: false,
-				attributionControl: false
+				attributionControl: false,
+				preferCanvas: true,
+				zoomAnimation: false,
+				markerZoomAnimation: false,
+				fadeAnimation: false
 			});
 			L.control.zoom({ position: "bottomleft" }).addTo(map);
-			L.tileLayer(GOOGLE_SAT_TILES, {
+			requestAnimationFrame(() => map.invalidateSize());
+			L.tileLayer(GOOGLE_HYBRID_TILES, {
 				subdomains: [
 					"0",
 					"1",
@@ -1469,91 +1477,52 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 					"3"
 				],
 				maxZoom: 21,
-				maxNativeZoom: 21,
+				maxNativeZoom: 20,
+				updateWhenIdle: true,
+				keepBuffer: 1,
 				attribution: "Google"
-			}).addTo(map);
-			L.tileLayer(GOOGLE_LABELS_TILES, {
-				subdomains: [
-					"0",
-					"1",
-					"2",
-					"3"
-				],
-				maxZoom: 21,
-				maxNativeZoom: 21,
-				opacity: 1,
-				className: "google-labels"
 			}).addTo(map);
 			const streets = L.layerGroup().addTo(map);
 			for (const s of STREETS) L.polyline(s.path.map((p) => [p.lat, p.lng]), {
 				color: "#38bdf8",
 				weight: 3,
-				opacity: .85,
+				opacity: .7,
 				interactive: false
 			}).addTo(streets);
 			streetsLayerRef.current = streets;
-			streetNamesRef.current = L.layerGroup().addTo(map);
 			stakeLayerRef.current = L.layerGroup().addTo(map);
 			map.on("dragstart", () => onUserDrag());
-			const renderStreetNames = () => {
-				const layer = streetNamesRef.current;
-				if (!layer) return;
-				layer.clearLayers();
-				if (map.getZoom() < STREET_NAME_MIN_ZOOM) return;
-				for (const s of STREETS) {
-					const mid = streetMid(s.path);
-					const short = s.name.replace(/^Rua\s+/i, "");
-					L.marker([mid.lat, mid.lng], {
-						icon: L.divIcon({
-							className: "street-name-label",
-							html: `<span>${short}</span>`,
-							iconSize: [160, 18],
-							iconAnchor: [80, 9]
-						}),
-						interactive: false,
-						keyboard: false
-					}).addTo(layer);
-				}
-			};
+			const canvas = L.canvas({ padding: .3 });
+			let renderTimer = null;
 			const renderStakes = () => {
 				const layer = stakeLayerRef.current;
 				if (!layer) return;
 				layer.clearLayers();
+				if (map.getZoom() < STAKE_MIN_ZOOM) return;
 				const bounds = map.getBounds();
-				const zoom = map.getZoom();
-				if (zoom < STAKE_MIN_ZOOM) return;
-				const showLabel = zoom >= LABEL_MIN_ZOOM;
 				const visible = stakesInRect({
 					south: bounds.getSouth(),
 					west: bounds.getWest(),
 					north: bounds.getNorth(),
 					east: bounds.getEast()
 				}, MAX_VISIBLE_STAKES);
-				for (const st of visible) {
-					const m = L.circleMarker([st.pos.lat, st.pos.lng], {
-						radius: showLabel ? 7 : 4,
-						color: "#0f172a",
-						weight: 1.5,
-						fillColor: "#f8fafc",
-						fillOpacity: .95,
-						interactive: false
-					});
-					if (showLabel) m.bindTooltip(`E-${st.number}`, {
-						permanent: true,
-						direction: "top",
-						offset: [0, -8],
-						className: "stake-label"
-					});
-					m.addTo(layer);
-				}
+				for (const st of visible) L.circleMarker([st.pos.lat, st.pos.lng], {
+					radius: 3,
+					color: "#0f172a",
+					weight: 1,
+					fillColor: "#e2e8f0",
+					fillOpacity: .9,
+					interactive: false,
+					renderer: canvas
+				}).addTo(layer);
 			};
-			const render = () => {
-				renderStakes();
-				renderStreetNames();
+			const scheduleRender = () => {
+				if (renderTimer) window.clearTimeout(renderTimer);
+				renderTimer = window.setTimeout(renderStakes, 120);
 			};
-			map.on("moveend", render);
-			map.on("zoomend", render);
-			render();
+			map.on("moveend", scheduleRender);
+			map.on("zoomend", scheduleRender);
+			renderStakes();
 			mapRef.current = map;
 		});
 		return () => {
@@ -1580,8 +1549,8 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 		} else {
 			userRef.current.setLatLng([position.lat, position.lng]);
 			const last = lastCenterRef.current;
-			if (followRef.current && (!last || haversine(last, position) > 8)) {
-				map.panTo([position.lat, position.lng]);
+			if (followRef.current && (!last || haversine(last, position) > 18)) {
+				map.panTo([position.lat, position.lng], { animate: false });
 				lastCenterRef.current = position;
 			}
 		}
@@ -1624,8 +1593,8 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 		const icon = L.divIcon({
 			className: "stake-balloon",
 			html: `<div class="stake-balloon-inner">${text}</div>`,
-			iconSize: [88, 44],
-			iconAnchor: [44, 44]
+			iconSize: [56, 28],
+			iconAnchor: [28, 30]
 		});
 		if (!balloonRef.current) balloonRef.current = L.marker([match.snapped.lat, match.snapped.lng], {
 			icon,
@@ -1707,7 +1676,7 @@ function useGeolocation(enabled = true) {
 			};
 			const emitted = lastEmitRef.current;
 			const moved = emitted ? haversine(emitted.pos, next) : Infinity;
-			if (emitted && t - emitted.t < 350 && moved < .6) return;
+			if (emitted && t - emitted.t < 800 && moved < 2) return;
 			lastEmitRef.current = {
 				pos: next,
 				t
@@ -1728,21 +1697,13 @@ function useGeolocation(enabled = true) {
 		};
 		const opts = {
 			enableHighAccuracy: true,
-			maximumAge: 800,
+			maximumAge: 1500,
 			timeout: 12e3
 		};
 		navigator.geolocation.getCurrentPosition(apply, onError, opts);
 		const id = navigator.geolocation.watchPosition(apply, onError, opts);
-		const kick = window.setInterval(() => {
-			navigator.geolocation.getCurrentPosition(apply, () => void 0, {
-				enableHighAccuracy: true,
-				maximumAge: 0,
-				timeout: 8e3
-			});
-		}, 8e3);
 		return () => {
 			navigator.geolocation.clearWatch(id);
-			window.clearInterval(kick);
 		};
 	}, [enabled]);
 	return state;
@@ -1780,14 +1741,14 @@ function Index() {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Splash, {}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "absolute inset-0",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StakeMap, {
+				children: !cameraOpen ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StakeMap, {
 					position,
 					accuracy,
 					match,
 					follow,
 					onUserDrag: () => setFollow(false),
 					recenterNonce
-				})
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "absolute inset-0 bg-bg" })
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "pointer-events-none absolute inset-x-0 top-0 z-20 p-3 pt-[max(12px,env(safe-area-inset-top))]",

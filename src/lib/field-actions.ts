@@ -41,16 +41,20 @@ async function tryRemote<T>(fn: () => Promise<T>): Promise<T | null> {
 export async function fetchSnapshot(): Promise<Snapshot> {
   const local = typeof window === "undefined" ? seedSnapshot() : localSnapshot();
   const remote = await tryRemote(() => remoteGetSnapshot());
-  if (!remote) return local;
+  if (!remote?.live) return { ...local, live: false };
   const merged = mergeSnapshots(local, remote);
   persistMergedApontamentos(merged.apontamentos);
-  return merged;
+  return { ...merged, live: true };
 }
 
 export async function saveApontamento(data: SavePayload): Promise<Apontamento> {
-  const row = upsertApontamentoLocal(data);
-  const remote = await tryRemote(() => remoteUpsert({ data }));
-  return remote ?? row;
+  try {
+    const remote = await remoteUpsert({ data });
+    upsertApontamentoLocal(data);
+    return remote;
+  } catch {
+    return upsertApontamentoLocal(data);
+  }
 }
 
 export async function endApontamento(id: string, end: string) {

@@ -45,9 +45,14 @@ function Home() {
             <p className="text-xs font-medium uppercase tracking-widest text-muted">Apontamento</p>
             <h1 className="font-display text-2xl font-semibold leading-none text-fg">{formatDateBR(today)}</h1>
           </div>
-          <p className="text-sm tabular-nums text-muted">
-            {rows.length} · {formatDuration(hours)}
-          </p>
+          <div className="text-right">
+            <p className={`text-xs font-semibold ${data?.live ? "text-ok" : "text-muted"}`}>
+              {data?.live ? "Save global" : "Só neste aparelho"}
+            </p>
+            <p className="text-sm tabular-nums text-muted">
+              {rows.length} · {formatDuration(hours)}
+            </p>
+          </div>
         </div>
       </header>
 

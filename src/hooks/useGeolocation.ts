@@ -68,7 +68,7 @@ export function useGeolocation(enabled = true): GeoState {
 
       const emitted = lastEmitRef.current;
       const moved = emitted ? haversine(emitted.pos, next) : Infinity;
-      if (emitted && t - emitted.t < 350 && moved < 0.6) return;
+      if (emitted && t - emitted.t < 800 && moved < 2) return;
       lastEmitRef.current = { pos: next, t };
 
       setState({
@@ -86,24 +86,15 @@ export function useGeolocation(enabled = true): GeoState {
 
     const opts: PositionOptions = {
       enableHighAccuracy: true,
-      maximumAge: 800,
+      maximumAge: 1500,
       timeout: 12000,
     };
 
     navigator.geolocation.getCurrentPosition(apply, onError, opts);
     const id = navigator.geolocation.watchPosition(apply, onError, opts);
 
-    const kick = window.setInterval(() => {
-      navigator.geolocation.getCurrentPosition(apply, () => undefined, {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 8000,
-      });
-    }, 8000);
-
     return () => {
       navigator.geolocation.clearWatch(id);
-      window.clearInterval(kick);
     };
   }, [enabled]);
 

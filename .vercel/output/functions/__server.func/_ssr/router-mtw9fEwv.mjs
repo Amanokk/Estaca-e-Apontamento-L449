@@ -6,7 +6,7 @@ import { a as number, c as union, i as literal, o as object, s as string } from 
 import { a as TriangleAlert } from "../_libs/lucide-react.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
 import { t as Toaster } from "../_libs/sonner.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-BG1a5Q9v.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-mtw9fEwv.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var __defProp = Object.defineProperty;
@@ -329,7 +329,7 @@ function AppQueryProvider({ children }) {
 		children
 	});
 }
-var styles_default = "/assets/styles-Dc4THFk4.css";
+var styles_default = "/assets/styles-BIEDWhlF.css";
 var APP_NAME = "Estaca GPS";
 var Route$8 = createRootRoute({
 	head: () => ({
@@ -393,19 +393,19 @@ var Route$8 = createRootRoute({
 		})]
 	})
 });
-var $$splitComponentImporter$7 = () => import("./routes-DH2zfY39.mjs");
+var $$splitComponentImporter$7 = () => import("./routes-C8rRkLRi.mjs");
 var Route$7 = createFileRoute("/")({ component: lazyRouteComponent($$splitComponentImporter$7, "component") });
-var $$splitComponentImporter$6 = () => import("./apontamento-Cd11Ci3w.mjs");
+var $$splitComponentImporter$6 = () => import("./apontamento-B6reky8m.mjs");
 var Route$6 = createFileRoute("/apontamento")({ component: lazyRouteComponent($$splitComponentImporter$6, "component") });
-var $$splitComponentImporter$5 = () => import("./cadastros-Dc5sr7hq.mjs");
+var $$splitComponentImporter$5 = () => import("./cadastros-BxUQ-QN4.mjs");
 var Route$5 = createFileRoute("/cadastros")({ component: lazyRouteComponent($$splitComponentImporter$5, "component") });
-var $$splitComponentImporter$4 = () => import("./fotos-BLOt9fQn.mjs");
+var $$splitComponentImporter$4 = () => import("./fotos-aIVjuTX2.mjs");
 var Route$4 = createFileRoute("/fotos")({ component: lazyRouteComponent($$splitComponentImporter$4, "component") });
-var $$splitComponentImporter$3 = () => import("./historico-jU3yR6J0.mjs");
+var $$splitComponentImporter$3 = () => import("./historico-lEYWK9Ps.mjs");
 var Route$3 = createFileRoute("/historico")({ component: lazyRouteComponent($$splitComponentImporter$3, "component") });
-var $$splitComponentImporter$2 = () => import("./mapa-AKKS49Cu.mjs");
+var $$splitComponentImporter$2 = () => import("./mapa-ByRqIRf3.mjs");
 var Route$2 = createFileRoute("/mapa")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
-var $$splitComponentImporter$1 = () => import("./novo-DkpZne5w.mjs");
+var $$splitComponentImporter$1 = () => import("./novo-D_-6g_Sz.mjs");
 var Route$1 = createFileRoute("/novo")({
 	validateSearch: (raw) => {
 		const out = {};
@@ -416,7 +416,7 @@ var Route$1 = createFileRoute("/novo")({
 	},
 	component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-var $$splitComponentImporter = () => import("./relatorio-CSm-vl6g.mjs");
+var $$splitComponentImporter = () => import("./relatorio-BV_fXM5E.mjs");
 var Route = createFileRoute("/relatorio")({ component: lazyRouteComponent($$splitComponentImporter, "component") });
 var rootRouteChildren = {
 	IndexRoute: Route$7.update({
