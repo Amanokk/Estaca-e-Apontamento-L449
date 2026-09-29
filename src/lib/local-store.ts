@@ -45,6 +45,7 @@ type Store = {
   deletedIds: string[];
   inactiveStreetIds: string[];
   inactiveEquipmentIds: string[];
+  pending: AptInput[];
 };
 
 function emptyStore(): Store {
@@ -54,6 +55,7 @@ function emptyStore(): Store {
     deletedIds: [],
     inactiveStreetIds: [],
     inactiveEquipmentIds: [],
+    pending: [],
   };
 }
 
@@ -93,6 +95,7 @@ function readStore(): Store {
       deletedIds: parsed.deletedIds ?? [],
       inactiveStreetIds: parsed.inactiveStreetIds ?? [],
       inactiveEquipmentIds: parsed.inactiveEquipmentIds ?? [],
+      pending: Array.isArray(parsed.pending) ? parsed.pending : [],
     };
   } catch {
     return emptyStore();
@@ -328,4 +331,20 @@ export function persistMergedApontamentos(rows: Apontamento[]) {
   const store = readStore();
   store.apontamentos = rows;
   writeStore(store);
+}
+
+export function queuePending(data: AptInput) {
+  const store = readStore();
+  store.pending = [data, ...store.pending.filter((p) => p.id !== data.id)];
+  writeStore(store);
+}
+
+export function dropPending(id: string) {
+  const store = readStore();
+  store.pending = store.pending.filter((p) => p.id !== id);
+  writeStore(store);
+}
+
+export function listPending(): AptInput[] {
+  return readStore().pending;
 }

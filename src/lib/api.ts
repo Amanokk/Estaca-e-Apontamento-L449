@@ -174,8 +174,12 @@ function mapPresence(r: PresenceRow): Presence {
 
 async function ensureSeed() {
   const sql = await getSql();
-  // Demo rows used to reappear on every empty DB and looked like the app
-  // was creating apontamentos by itself.
+  try {
+    await sql`alter table presence add column if not exists activity_id text`;
+    await sql`alter table presence add column if not exists apontamento_id text`;
+  } catch (err) {
+    console.error("[seed] presence columns", err);
+  }
   await sql`delete from apontamentos where device_id = ${"seed"}`;
 
   const count = await sql<{ n: number }>`select count(*)::int as n from works`;
@@ -197,18 +201,29 @@ async function ensureSeed() {
   }
 }
 
-export const getSnapshot = createServerFn({ method: "GET" }).handler(async (): Promise<Snapshot> => {
+export const getSnapshot = createServerFn({ method: "POST" })
+  .validator(z.object({ t: z.number().optional() }))
+  .handler(async (): Promise<Snapshot> => {
   try {
-    await ensureSeed();
     const sql = await getSql();
-    const [works, streets, equipment, activities, apontamentos, presence] = await Promise.all([
+    try {
+      await ensureSeed();
+    } catch (seedErr) {
+      console.error("[snapshot] seed", seedErr);
+    }
+    const [works, streets, equipment, activities, apontamentos] = await Promise.all([
       sql<WorkRow>`select id, code, name, active from works order by code`,
       sql<StreetRow>`select id, name, work_id, active from streets order by name`,
       sql<EqRow>`select id, code, name, kind, plate, activity_ids, active from equipment order by code`,
       sql<ActivityRow>`select id, name, kind, code from activities order by name`,
       sql<AptRow>`select * from apontamentos order by date desc, start_time desc limit 400`,
-      sql<PresenceRow>`select * from presence where updated_at > now() - interval '8 minutes'`,
     ]);
+    let presence: PresenceRow[] = [];
+    try {
+      presence = await sql<PresenceRow>`select * from presence where updated_at > now() - interval '8 minutes'`;
+    } catch (presErr) {
+      console.error("[snapshot] presence", presErr);
+    }
     return {
       works: works.map(mapWork),
       streets: streets.map(mapStreet),
@@ -370,27 +385,47 @@ export const pingPresence = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const sql = await getSql();
     await sql`delete from presence where updated_at < now() - interval '12 minutes'`;
-    await sql`insert into presence (
-      device_id, label, lat, lng, accuracy, work_id, equipment_id, street_id, activity_id, apontamento_id, updated_at
-    ) values (
-      ${data.deviceId}, ${data.label.slice(0, 24)}, ${data.lat}, ${data.lng}, ${data.accuracy},
-      ${data.workId}, ${data.equipmentId}, ${data.streetId}, ${data.activityId}, ${data.apontamentoId}, now()
-    )
-    on conflict (device_id) do update set
-      label = excluded.label,
-      lat = excluded.lat,
-      lng = excluded.lng,
-      accuracy = excluded.accuracy,
-      work_id = excluded.work_id,
-      equipment_id = excluded.equipment_id,
-      street_id = excluded.street_id,
-      activity_id = excluded.activity_id,
-      apontamento_id = excluded.apontamento_id,
-      updated_at = now()`;
+    try {
+      await sql`insert into presence (
+        device_id, label, lat, lng, accuracy, work_id, equipment_id, street_id, activity_id, apontamento_id, updated_at
+      ) values (
+        ${data.deviceId}, ${data.label.slice(0, 24)}, ${data.lat}, ${data.lng}, ${data.accuracy},
+        ${data.workId}, ${data.equipmentId}, ${data.streetId}, ${data.activityId}, ${data.apontamentoId}, now()
+      )
+      on conflict (device_id) do update set
+        label = excluded.label,
+        lat = excluded.lat,
+        lng = excluded.lng,
+        accuracy = excluded.accuracy,
+        work_id = excluded.work_id,
+        equipment_id = excluded.equipment_id,
+        street_id = excluded.street_id,
+        activity_id = excluded.activity_id,
+        apontamento_id = excluded.apontamento_id,
+        updated_at = now()`;
+    } catch {
+      await sql`insert into presence (
+        device_id, label, lat, lng, accuracy, work_id, equipment_id, street_id, updated_at
+      ) values (
+        ${data.deviceId}, ${data.label.slice(0, 24)}, ${data.lat}, ${data.lng}, ${data.accuracy},
+        ${data.workId}, ${data.equipmentId}, ${data.streetId}, now()
+      )
+      on conflict (device_id) do update set
+        label = excluded.label,
+        lat = excluded.lat,
+        lng = excluded.lng,
+        accuracy = excluded.accuracy,
+        work_id = excluded.work_id,
+        equipment_id = excluded.equipment_id,
+        street_id = excluded.street_id,
+        updated_at = now()`;
+    }
     return { ok: true };
   });
 
-export const getPresence = createServerFn({ method: "GET" }).handler(async (): Promise<Presence[]> => {
+export const getPresence = createServerFn({ method: "POST" })
+  .validator(z.object({ t: z.number().optional() }))
+  .handler(async (): Promise<Presence[]> => {
   try {
     const sql = await getSql();
     const presence = await sql<PresenceRow>`select * from presence where updated_at > now() - interval '8 minutes'`;

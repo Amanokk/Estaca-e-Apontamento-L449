@@ -20,9 +20,12 @@ import {
   addWorkLocal,
   closeApontamentoLocal,
   deleteApontamentoLocal,
+  dropPending,
+  listPending,
   localSnapshot,
   mergeSnapshots,
   persistMergedApontamentos,
+  queuePending,
   seedSnapshot,
   toggleStreetLocal,
   updateEquipmentLocal,
@@ -33,14 +36,28 @@ import type { Apontamento, Presence, Snapshot } from "./types";
 async function tryRemote<T>(fn: () => Promise<T>): Promise<T | null> {
   try {
     return await fn();
-  } catch {
+  } catch (err) {
+    console.error("[sync]", err);
     return null;
   }
 }
 
+async function flushPending() {
+  const pending = listPending();
+  for (const data of pending) {
+    try {
+      await remoteUpsert({ data });
+      dropPending(data.id);
+    } catch {
+      break;
+    }
+  }
+}
+
 export async function fetchSnapshot(): Promise<Snapshot> {
+  await flushPending();
   const local = typeof window === "undefined" ? seedSnapshot() : localSnapshot();
-  const remote = await tryRemote(() => remoteGetSnapshot());
+  const remote = await tryRemote(() => remoteGetSnapshot({ data: { t: Date.now() } }));
   if (!remote?.live) return { ...local, live: false };
   const merged = mergeSnapshots(local, remote);
   persistMergedApontamentos(merged.apontamentos);
@@ -48,29 +65,62 @@ export async function fetchSnapshot(): Promise<Snapshot> {
 }
 
 export async function saveApontamento(data: SavePayload): Promise<Apontamento> {
+  const row = upsertApontamentoLocal(data);
   try {
     const remote = await remoteUpsert({ data });
-    upsertApontamentoLocal(data);
+    dropPending(data.id);
     return remote;
   } catch {
-    return upsertApontamentoLocal(data);
+    queuePending(data);
+    return row;
   }
 }
 
 export async function endApontamento(id: string, end: string) {
   closeApontamentoLocal(id, end);
-  await tryRemote(() => remoteClose({ data: { id, end } }));
+  try {
+    await remoteClose({ data: { id, end } });
+  } catch {
+    const payload = fromLocal(id);
+    if (payload) queuePending(payload);
+  }
   return { ok: true as const };
+}
+
+function fromLocal(id: string): SavePayload | null {
+  const snap = localSnapshot();
+  const a = snap.apontamentos.find((x) => x.id === id);
+  if (!a) return null;
+  return {
+    id: a.id,
+    date: a.date,
+    start: a.start,
+    end: a.end,
+    workId: a.workId,
+    streetId: a.streetId,
+    equipmentId: a.equipmentId,
+    activityId: a.activityId,
+    estaca: a.estaca,
+    pv: a.pv,
+    quantity: a.quantity,
+    notes: a.notes,
+    lat: a.lat,
+    lng: a.lng,
+    accuracy: a.accuracy,
+    locationLabel: a.locationLabel,
+    deviceId: a.deviceId,
+  };
 }
 
 export async function removeApontamento(id: string) {
   deleteApontamentoLocal(id);
   await tryRemote(() => remoteDelete({ data: { id } }));
+  dropPending(id);
   return { ok: true as const };
 }
 
 export async function fetchPresence(): Promise<Presence[]> {
-  return (await tryRemote(() => remoteGetPresence())) ?? [];
+  return (await tryRemote(() => remoteGetPresence({ data: { t: Date.now() } }))) ?? [];
 }
 
 export type PresencePing = {

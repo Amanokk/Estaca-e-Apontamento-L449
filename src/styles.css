@@ -159,6 +159,81 @@
   border-bottom-width: 0;
 }
 
+.stake-chip {
+  background: transparent !important;
+  border: none !important;
+}
+
+.stake-chip-inner {
+  display: inline-block;
+  background: #f5c518;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid #0f172a;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+  white-space: nowrap;
+}
+
+.live-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.live-pin-inner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 140px;
+  padding: 3px 8px 3px 3px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.4);
+}
+
+.live-pin-inner i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.live-pin-inner b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.live-pin-inner span {
+  display: none;
+}
+
+.live-pin.crew .live-pin-inner {
+  background: #14532d;
+  color: #bbf7d0;
+  border: 1px solid #4ade80;
+}
+
+.live-pin.crew .live-pin-inner i {
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgb(74 222 128 / 0.35);
+}
+
+.live-pin.machine .live-pin-inner {
+  background: #422006;
+  color: #fde68a;
+  border: 1px solid #f5c518;
+}
+
+.live-pin.machine .live-pin-inner i {
+  background: #f5c518;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition-duration: 0.01ms !important;

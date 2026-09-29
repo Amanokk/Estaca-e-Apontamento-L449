@@ -10,11 +10,14 @@ const rawDatabaseUrl =
 const databaseUrl =
   rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
 
-// Vercel serverless cannot open PGLite's WASM data file (`/var/task/_libs/pglite.data`).
-// If DATABASE_URL is missing there, skip PGLite entirely and let app code fall back
-// to the on-device store instead of crashing the function on import.
+// Vercel serverless / production Nitro builds cannot open PGLite's WASM data
+// file (`_libs/pglite.data`). Skip the embedded DB there and use Neon instead
+// (or the on-device store if DATABASE_URL is missing).
 const isVercel =
-  typeof process !== "undefined" && Boolean(process.env.VERCEL);
+  typeof process !== "undefined" &&
+  (Boolean(process.env.VERCEL) ||
+    process.env.NITRO_PRESET === "vercel" ||
+    process.env.NODE_ENV === "production");
 
 /**
  * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
@@ -93,20 +96,46 @@ function toSql(run: Run): Sql {
 
 function createNeonSql(): Promise<Sql> {
   globalRef.__pgSqlPromise__ ??= (async () => {
-    const { Pool, types } = await import("pg");
-    types.setTypeParser(OID_INT8, Number);
-    types.setTypeParser(OID_DATE, identity);
-    types.setTypeParser(OID_INTERVAL, identity);
-    const pool = new Pool({ connectionString: databaseUrl });
-    return toSql(async <T>(text: string, params: unknown[]) => {
-      const res = await pool.query(text, params);
-      return res.rows as T[];
+    const { neon } = await import("@neondatabase/serverless");
+    const raw = neon(databaseUrl!);
+    const sql = toSql(async <T>(text: string, params: unknown[]) => {
+      const rows = await raw.query(text, params);
+      return (Array.isArray(rows) ? rows : []) as T[];
     });
+    await applySqlMigrations(sql);
+    return sql;
   })().catch((err) => {
     globalRef.__pgSqlPromise__ = undefined;
     throw err;
   });
   return globalRef.__pgSqlPromise__;
+}
+
+function splitSql(text: string): string[] {
+  return text
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && !s.startsWith("--"));
+}
+
+async function applySqlMigrations(sql: Sql) {
+  await sql.query(
+    "create table if not exists _migrations (name text primary key, applied_at timestamptz not null default now())",
+    [],
+  );
+  const migrations = import.meta.glob("/migrations/*.sql", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+  }) as Record<string, string>;
+  const doneRows = await sql.query<{ name: string }>("select name from _migrations", []);
+  const done = doneRows.map((r) => r.name);
+  for (const { name, path } of pendingMigrations(Object.keys(migrations), done)) {
+    for (const stmt of splitSql(migrations[path] ?? "")) {
+      await sql.query(stmt, []);
+    }
+    await sql.query("insert into _migrations (name) values ($1) on conflict (name) do nothing", [name]);
+  }
 }
 
 async function createPgliteSql(): Promise<Sql> {

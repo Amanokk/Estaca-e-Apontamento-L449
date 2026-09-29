@@ -16,13 +16,15 @@ import type { GpsState, LastUsed, Presence, Snapshot } from "./types";
 export const SNAPSHOT_KEY = ["snapshot"] as const;
 export const PRESENCE_KEY = ["presence"] as const;
 
-export function useSnapshot(_initial?: Snapshot, live = false) {
+export function useSnapshot(_initial?: Snapshot, live = true) {
   return useQuery({
     queryKey: SNAPSHOT_KEY,
     queryFn: () => fetchSnapshot(),
-    staleTime: live ? 4_000 : 30_000,
+    staleTime: live ? 1_500 : 20_000,
     refetchOnWindowFocus: true,
-    refetchInterval: live ? 5_000 : false,
+    refetchOnReconnect: true,
+    refetchInterval: live ? 3_000 : false,
+    refetchIntervalInBackground: live,
     placeholderData: (prev) => prev ?? seedSnapshot(),
   });
 }
@@ -32,9 +34,10 @@ export function useLivePresence(enabled: boolean, _initial?: Presence[]) {
     queryKey: PRESENCE_KEY,
     queryFn: () => fetchPresence(),
     enabled,
-    staleTime: 6_000,
-    refetchInterval: enabled ? 8_000 : false,
-    refetchOnWindowFocus: false,
+    staleTime: 1_500,
+    refetchInterval: enabled ? 3_000 : false,
+    refetchIntervalInBackground: enabled,
+    refetchOnWindowFocus: true,
     placeholderData: (prev) => prev ?? [],
   });
 }
@@ -90,11 +93,11 @@ export function usePresencePing(
     const send = (force: boolean) => {
       const moved = haversineMeters({ lat, lng }, lastSent.current);
       const age = Date.now() - lastSent.current.t;
-      if (!force && moved < 8 && age < 12_000) return;
+      if (!force && moved < 4 && age < 3_000) return;
       lastSent.current = { lat, lng, t: Date.now() };
       void sendPresence({
         deviceId: getDeviceId(),
-        label: getCrewLabel() || "No campo",
+        label: getCrewLabel() || `Equipe ${getDeviceId().slice(0, 4)}`,
         lat,
         lng,
         accuracy: acc,
@@ -106,8 +109,8 @@ export function usePresencePing(
       });
     };
 
-    send(false);
-    const id = window.setInterval(() => send(true), 12_000);
+    send(true);
+    const id = window.setInterval(() => send(true), 4_000);
     return () => window.clearInterval(id);
   }, [
     lat,

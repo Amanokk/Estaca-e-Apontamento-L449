@@ -3,11 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Camera, ClipboardList, LocateFixed } from "lucide-react";
 import { Splash } from "@/components/Splash";
 import { CameraCapture } from "@/components/CameraCapture";
-import { StakeMap } from "@/components/StakeMap";
+import { StakeMap, type MapPin } from "@/components/StakeMap";
 import { AppShell } from "@/components/app-shell";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { findNearestStake, PROJECT_CENTER, quantize } from "@/lib/findStake";
+import { getCrewLabel, getDeviceId, gpsQuality, loadLast, setCrewLabel } from "@/lib/field-geo";
+import { useLivePresence, usePresencePing, useSnapshot } from "@/lib/use-snapshot";
+import type { GpsState } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -16,10 +19,13 @@ export const Route = createFileRoute("/")({
 function Index() {
   const geo = useGeolocation(true);
   const online = useOnlineStatus();
+  const { data } = useSnapshot(undefined, true);
+  const { data: livePresence } = useLivePresence(true);
   const [demo, setDemo] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [follow, setFollow] = useState(true);
   const [recenterNonce, setRecenterNonce] = useState(0);
+  const [label, setLabel] = useState(() => (typeof window === "undefined" ? "" : getCrewLabel()));
 
   useEffect(() => {
     if (geo.position || geo.error) return;
@@ -38,6 +44,73 @@ function Index() {
   );
 
   const cameraMatch = match ?? (position ? findNearestStake(position, 800) : null);
+  const last = loadLast();
+  const deviceId = typeof window === "undefined" ? "" : getDeviceId();
+  const open = useMemo(
+    () => (data?.apontamentos ?? []).filter((a) => !a.end),
+    [data?.apontamentos],
+  );
+  const myOpen =
+    open.find((a) => a.equipmentId === last.equipmentId) ??
+    open.find((a) => a.deviceId === deviceId);
+
+  const gpsState: GpsState = position
+    ? {
+        status: "ready",
+        lat: position.lat,
+        lng: position.lng,
+        accuracy: accuracy ?? 25,
+        quality: gpsQuality(accuracy ?? 25),
+        heading: geo.heading,
+        updatedAt: Date.now(),
+      }
+    : { status: "idle" };
+
+  usePresencePing(gpsState, {
+    ...last,
+    apontamentoId: myOpen?.id ?? null,
+    activityId: myOpen?.activityId || last.activityId,
+    equipmentId: myOpen?.equipmentId || last.equipmentId,
+    streetId: myOpen?.streetId || last.streetId,
+    workId: myOpen?.workId || last.workId,
+  });
+
+  const presence = livePresence ?? data?.presence ?? [];
+  const pins: MapPin[] = useMemo(() => {
+    const out: MapPin[] = [];
+    const seen = new Set<string>();
+    for (const p of presence) {
+      if (p.deviceId === deviceId) continue;
+      const a = open.find(
+        (x) => x.id === p.apontamentoId || x.equipmentId === p.equipmentId || x.deviceId === p.deviceId,
+      );
+      if (a) seen.add(a.id);
+      out.push({
+        id: p.deviceId,
+        lat: p.lat,
+        lng: p.lng,
+        kind: a ? "machine" : "crew",
+        label: a ? a.equipmentName : p.label || "Disponível",
+        sub: a ? a.activityName : "conectado",
+      });
+    }
+    for (const a of open) {
+      if (a.lat == null || a.lng == null) continue;
+      if (seen.has(a.id) || a.deviceId === deviceId) continue;
+      out.push({
+        id: a.id,
+        lat: a.lat,
+        lng: a.lng,
+        kind: "machine",
+        label: a.equipmentName,
+        sub: a.activityName,
+      });
+    }
+    return out;
+  }, [presence, open, deviceId]);
+
+  const machines = pins.filter((p) => p.kind === "machine").length;
+  const crew = pins.filter((p) => p.kind === "crew").length;
 
   const recenter = () => {
     setFollow(true);
@@ -63,6 +136,7 @@ function Index() {
               follow={follow}
               onUserDrag={() => setFollow(false)}
               recenterNonce={recenterNonce}
+              pins={pins}
             />
           ) : (
             <div className="absolute inset-0 bg-bg" />
@@ -76,6 +150,9 @@ function Index() {
               <span className="flex items-center gap-2 normal-case tracking-normal">
                 {!online ? <span className="rounded-full bg-accent/15 px-2 py-0.5 text-accent">Offline</span> : null}
                 {usingDemo ? <span className="rounded-full bg-gps/15 px-2 py-0.5 text-gps">Demo</span> : null}
+                <span className={`tabular-nums ${data?.live ? "text-ok" : "text-muted"}`}>
+                  {data?.live ? "Save global" : "Só neste aparelho"}
+                </span>
                 <span className="tabular-nums text-muted">GPS ±{accuracy ? accuracy.toFixed(0) : "--"} m</span>
               </span>
             </div>
@@ -130,6 +207,21 @@ function Index() {
               </div>
             )}
 
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                value={label}
+                maxLength={24}
+                onChange={(e) => setLabel(e.target.value)}
+                onBlur={() => setCrewLabel(label)}
+                placeholder="Seu nome no mapa"
+                className="min-h-9 flex-1 rounded-lg border border-border bg-surface px-3 text-sm text-fg outline-none"
+              />
+              <p className="shrink-0 text-[11px] text-muted">
+                {machines === 1 ? "1 máquina" : `${machines} máquinas`} ·{" "}
+                {crew === 1 ? "1 disponível" : `${crew} disponíveis`}
+              </p>
+            </div>
+
             <div className="mt-3 grid grid-cols-2 gap-2">
               <Link
                 to="/novo"
@@ -149,6 +241,21 @@ function Index() {
               </button>
             </div>
           </div>
+        </div>
+
+        <div className="pointer-events-none absolute bottom-20 left-3 z-20 rounded-xl border border-border bg-bg/80 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted backdrop-blur-md">
+          <p className="flex items-center gap-1.5">
+            <span className="size-2 rounded-full bg-fg/70" /> Estacas
+          </p>
+          <p className="mt-1 flex items-center gap-1.5">
+            <span className="size-2 rounded-full bg-ok" /> Equipe disponível
+          </p>
+          <p className="mt-1 flex items-center gap-1.5">
+            <span className="size-2 rounded-full bg-accent" /> Máquina em atividade
+          </p>
+          <p className="mt-1 flex items-center gap-1.5">
+            <span className="size-2 rounded-full bg-gps" /> Você
+          </p>
         </div>
 
         <button
