@@ -79,6 +79,16 @@
   z-index: 0;
 }
 
+.leaflet-fade-anim .leaflet-tile,
+.leaflet-fade-anim .leaflet-popup {
+  opacity: 1 !important;
+}
+
+.stake-canvas,
+.map-tiles {
+  pointer-events: none;
+}
+
 .leaflet-control-zoom a {
   background: color-mix(in oklab, #0f172a 88%, transparent) !important;
   color: #f8fafc !important;

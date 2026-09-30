@@ -7,7 +7,7 @@ import { E as ClipboardList, k as Camera, l as Settings2, n as ZoomOut, r as X, 
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
 import { E as useSnapshot, T as usePresencePing, _ as setCrewLabel, c as getDeviceId, f as loadLast, l as gpsQuality, o as fetchMiniMap, s as getCrewLabel, w as useLivePresence } from "./use-snapshot-BTUnFbZn.mjs";
 import { i as downloadDataUrl, n as addExif, o as putPhoto, t as MiniMapThumb, u as useOnlineStatus } from "./MiniMapThumb-Crw4FNrw.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-BhUzpEHK.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-RGwV2f-c.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function Splash() {
@@ -1343,46 +1343,6 @@ function getGeometries() {
 	});
 	return cache;
 }
-var flat = null;
-function getAllStakes() {
-	if (flat) return flat;
-	flat = getGeometries().flatMap((g) => g.stakes);
-	return flat;
-}
-var CELL = .002;
-function key(lat, lng) {
-	return `${Math.floor(lat / CELL)}:${Math.floor(lng / CELL)}`;
-}
-var grid = null;
-function getGrid() {
-	if (grid) return grid;
-	grid = /* @__PURE__ */ new Map();
-	for (const st of getAllStakes()) {
-		const k = key(st.pos.lat, st.pos.lng);
-		const bucket = grid.get(k);
-		if (bucket) bucket.push(st);
-		else grid.set(k, [st]);
-	}
-	return grid;
-}
-function stakesInRect(rect, limit) {
-	const g = getGrid();
-	const out = [];
-	const y0 = Math.floor(rect.south / CELL);
-	const y1 = Math.floor(rect.north / CELL);
-	const x0 = Math.floor(rect.west / CELL);
-	const x1 = Math.floor(rect.east / CELL);
-	for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-		const bucket = g.get(`${y}:${x}`);
-		if (!bucket) continue;
-		for (const st of bucket) {
-			if (st.pos.lat < rect.south || st.pos.lat > rect.north || st.pos.lng < rect.west || st.pos.lng > rect.east) continue;
-			out.push(st);
-			if (out.length >= limit) return out;
-		}
-	}
-	return out;
-}
 var boxes = null;
 function getStreetBoxes() {
 	if (boxes) return boxes;
@@ -1438,28 +1398,22 @@ function quantize(p) {
 function esc(s) {
 	return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-function stakeRadius(z) {
-	if (z >= 19) return 2.6;
-	if (z >= 17) return 2;
-	if (z >= 15) return 1.35;
-	return .9;
-}
 function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce, pins = [] }) {
 	const hostRef = (0, import_react.useRef)(null);
 	const mapRef = (0, import_react.useRef)(null);
 	const LRef = (0, import_react.useRef)(null);
-	const highlightRef = (0, import_react.useRef)(null);
 	const balloonRef = (0, import_react.useRef)(null);
 	const userRef = (0, import_react.useRef)(null);
 	const accRef = (0, import_react.useRef)(null);
-	const stakeLayerRef = (0, import_react.useRef)(null);
 	const pinLayerRef = (0, import_react.useRef)(null);
+	const pinMarkersRef = (0, import_react.useRef)(/* @__PURE__ */ new Map());
 	const lastCenterRef = (0, import_react.useRef)(null);
+	const draggingRef = (0, import_react.useRef)(false);
 	const [ready, setReady] = (0, import_react.useState)(false);
 	const followRef = (0, import_react.useRef)(follow);
 	followRef.current = follow;
-	const pinsRef = (0, import_react.useRef)(pins);
-	pinsRef.current = pins;
+	const onDragRef = (0, import_react.useRef)(onUserDrag);
+	onDragRef.current = onUserDrag;
 	(0, import_react.useEffect)(() => {
 		if (!hostRef.current || mapRef.current) return;
 		let cancelled = false;
@@ -1472,13 +1426,13 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 				zoom: 18,
 				zoomControl: false,
 				attributionControl: false,
-				preferCanvas: true,
 				zoomAnimation: false,
 				markerZoomAnimation: false,
-				fadeAnimation: false
+				fadeAnimation: false,
+				inertia: true,
+				bounceAtZoomLimits: false
 			});
 			L.control.zoom({ position: "bottomleft" }).addTo(map);
-			requestAnimationFrame(() => map.invalidateSize());
 			L.tileLayer(GOOGLE_HYBRID_TILES, {
 				subdomains: [
 					"0",
@@ -1489,72 +1443,20 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 				maxZoom: 21,
 				maxNativeZoom: 20,
 				updateWhenIdle: true,
-				keepBuffer: 1,
+				updateWhenZooming: false,
+				keepBuffer: 8,
+				className: "map-tiles",
 				attribution: "Google"
 			}).addTo(map);
-			for (const s of STREETS) L.polyline(s.path.map((p) => [p.lat, p.lng]), {
-				color: "#38bdf8",
-				weight: 2,
-				opacity: .45,
-				interactive: false
-			}).addTo(map);
-			const canvas = L.canvas({ padding: .4 });
-			const stakes = L.layerGroup().addTo(map);
-			const r0 = stakeRadius(map.getZoom());
-			for (const st of getAllStakes()) L.circleMarker([st.pos.lat, st.pos.lng], {
-				radius: r0,
-				color: "transparent",
-				weight: 0,
-				fillColor: "#e2e8f0",
-				fillOpacity: .55,
-				interactive: false,
-				renderer: canvas
-			}).addTo(stakes);
-			stakeLayerRef.current = stakes;
 			pinLayerRef.current = L.layerGroup().addTo(map);
-			const labels = L.layerGroup().addTo(map);
-			const renderLabels = () => {
-				labels.clearLayers();
-				const z = map.getZoom();
-				if (z < 16) return;
-				const b = map.getBounds();
-				const visible = stakesInRect({
-					south: b.getSouth(),
-					west: b.getWest(),
-					north: b.getNorth(),
-					east: b.getEast()
-				}, 180);
-				const step = z >= 18 ? 1 : z >= 17 ? 2 : 4;
-				for (let i = 0; i < visible.length; i += step) {
-					const st = visible[i];
-					L.marker([st.pos.lat, st.pos.lng], {
-						icon: L.divIcon({
-							className: "stake-chip",
-							html: `<span class="stake-chip-inner">${st.number}</span>`,
-							iconSize: [36, 16],
-							iconAnchor: [18, 22]
-						}),
-						interactive: false,
-						keyboard: false
-					}).addTo(labels);
-				}
-			};
-			map.on("dragstart", () => onUserDrag());
-			let labelTimer = null;
-			const scheduleLabels = () => {
-				if (labelTimer) window.clearTimeout(labelTimer);
-				labelTimer = window.setTimeout(renderLabels, 80);
-			};
-			map.on("moveend", scheduleLabels);
-			map.on("zoomend", () => {
-				const r = stakeRadius(map.getZoom());
-				stakes.eachLayer((layer) => {
-					const c = layer;
-					if (typeof c.setRadius === "function") c.setRadius(r);
-				});
-				scheduleLabels();
+			map.on("dragstart", () => {
+				draggingRef.current = true;
+				onDragRef.current();
 			});
-			renderLabels();
+			map.on("dragend", () => {
+				draggingRef.current = false;
+			});
+			requestAnimationFrame(() => map.invalidateSize());
 			mapRef.current = map;
 			setReady(true);
 		});
@@ -1562,6 +1464,7 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 			cancelled = true;
 			mapRef.current?.remove();
 			mapRef.current = null;
+			pinMarkersRef.current.clear();
 		};
 	}, []);
 	(0, import_react.useEffect)(() => {
@@ -1570,19 +1473,19 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 		if (!map || !L || !position) return;
 		if (!userRef.current) {
 			userRef.current = L.circleMarker([position.lat, position.lng], {
-				radius: 8,
+				radius: 7,
 				color: "#0f172a",
 				weight: 2,
 				fillColor: "#22d3ee",
 				fillOpacity: 1,
 				interactive: false
 			}).addTo(map);
-			map.setView([position.lat, position.lng], map.getZoom());
+			map.setView([position.lat, position.lng], map.getZoom(), { animate: false });
 			lastCenterRef.current = position;
 		} else {
 			userRef.current.setLatLng([position.lat, position.lng]);
 			const last = lastCenterRef.current;
-			if (followRef.current && (!last || haversine(last, position) > 18)) {
+			if (followRef.current && !draggingRef.current && (!last || haversine(last, position) > 32)) {
 				map.panTo([position.lat, position.lng], { animate: false });
 				lastCenterRef.current = position;
 			}
@@ -1592,9 +1495,9 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 				radius: accuracy,
 				color: "#22d3ee",
 				weight: 1,
-				opacity: .4,
+				opacity: .3,
 				fillColor: "#22d3ee",
-				fillOpacity: .12,
+				fillOpacity: .06,
 				interactive: false
 			}).addTo(map);
 			else {
@@ -1612,35 +1515,34 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 		const L = LRef.current;
 		if (!map || !L) return;
 		if (!match) {
-			highlightRef.current?.remove();
-			highlightRef.current = null;
 			balloonRef.current?.remove();
 			balloonRef.current = null;
 			return;
 		}
-		const path = match.street.path.map((p) => [p.lat, p.lng]);
-		if (!highlightRef.current) highlightRef.current = L.polyline(path, {
-			color: "#f5c518",
-			weight: 5,
-			opacity: 1,
-			interactive: false
-		}).addTo(map);
-		else highlightRef.current.setLatLngs(path);
 		const text = `E-${match.estaca}`;
-		const icon = L.divIcon({
-			className: "stake-balloon",
-			html: `<div class="stake-balloon-inner">${text}</div>`,
-			iconSize: [56, 28],
-			iconAnchor: [28, 30]
-		});
-		if (!balloonRef.current) balloonRef.current = L.marker([match.snapped.lat, match.snapped.lng], {
-			icon,
-			interactive: false,
-			zIndexOffset: 900
-		}).addTo(map);
-		else {
-			balloonRef.current.setLatLng([match.snapped.lat, match.snapped.lng]);
-			balloonRef.current.setIcon(icon);
+		if (!balloonRef.current) {
+			balloonRef.current = L.marker([match.snapped.lat, match.snapped.lng], {
+				icon: L.divIcon({
+					className: "stake-balloon",
+					html: `<div class="stake-balloon-inner">${text}</div>`,
+					iconSize: [56, 28],
+					iconAnchor: [28, 30]
+				}),
+				interactive: false,
+				zIndexOffset: 900
+			}).addTo(map);
+			balloonRef.current._txt = text;
+			return;
+		}
+		balloonRef.current.setLatLng([match.snapped.lat, match.snapped.lng]);
+		if (balloonRef.current._txt !== text) {
+			balloonRef.current.setIcon(L.divIcon({
+				className: "stake-balloon",
+				html: `<div class="stake-balloon-inner">${text}</div>`,
+				iconSize: [56, 28],
+				iconAnchor: [28, 30]
+			}));
+			balloonRef.current._txt = text;
 		}
 	}, [match, ready]);
 	(0, import_react.useEffect)(() => {
@@ -1648,28 +1550,36 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 		const L = LRef.current;
 		const layer = pinLayerRef.current;
 		if (!map || !L || !layer || !ready) return;
-		layer.clearLayers();
+		const keep = new Set(pins.map((p) => p.id));
+		const markers = pinMarkersRef.current;
+		for (const [id, marker] of markers) if (!keep.has(id)) {
+			layer.removeLayer(marker);
+			markers.delete(id);
+		}
 		for (const pin of pins) {
-			const machine = pin.kind === "machine";
-			const sub = pin.sub ? `<span>${esc(pin.sub)}</span>` : "";
-			const icon = L.divIcon({
-				className: machine ? "live-pin machine" : "live-pin crew",
-				html: `<div class="live-pin-inner"><i></i><b>${esc(pin.label)}</b>${sub}</div>`,
-				iconSize: [120, 36],
-				iconAnchor: [16, 18]
-			});
-			L.marker([pin.lat, pin.lng], {
-				icon,
+			const existing = markers.get(pin.id);
+			if (existing) {
+				existing.setLatLng([pin.lat, pin.lng]);
+				continue;
+			}
+			const marker = L.marker([pin.lat, pin.lng], {
+				icon: L.divIcon({
+					className: pin.kind === "machine" ? "live-pin machine" : "live-pin crew",
+					html: `<div class="live-pin-inner"><i></i><b>${esc(pin.label)}</b></div>`,
+					iconSize: [120, 36],
+					iconAnchor: [16, 18]
+				}),
 				interactive: false,
 				zIndexOffset: 700
 			}).addTo(layer);
+			markers.set(pin.id, marker);
 		}
 	}, [pins, ready]);
 	(0, import_react.useEffect)(() => {
 		if (!recenterNonce) return;
 		const map = mapRef.current;
 		if (!map || !position) return;
-		map.panTo([position.lat, position.lng]);
+		map.panTo([position.lat, position.lng], { animate: false });
 		lastCenterRef.current = position;
 	}, [recenterNonce, position]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -2017,27 +1927,6 @@ function Index() {
 						})
 					]
 				})
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "pointer-events-none absolute bottom-20 left-3 z-20 rounded-xl border border-border bg-bg/80 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted backdrop-blur-md",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-						className: "flex items-center gap-1.5",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "size-2 rounded-full bg-fg/70" }), " Estacas"]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-						className: "mt-1 flex items-center gap-1.5",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "size-2 rounded-full bg-ok" }), " Equipe disponível"]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-						className: "mt-1 flex items-center gap-1.5",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "size-2 rounded-full bg-accent" }), " Máquina em atividade"]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-						className: "mt-1 flex items-center gap-1.5",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "size-2 rounded-full bg-gps" }), " Você"]
-					})
-				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				type: "button",

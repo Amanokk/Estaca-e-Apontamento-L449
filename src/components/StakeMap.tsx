@@ -2,9 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import type { LatLng } from "@/lib/geo";
 import { haversine } from "@/lib/geo";
-import { STREETS } from "@/data/streets";
 import { stakesInRect } from "@/lib/stakeIndex";
-import { getAllStakes } from "@/lib/stakePoints";
 import { PROJECT_CENTER, type Match } from "@/lib/findStake";
 import { GOOGLE_HYBRID_TILES } from "@/lib/googleMaps";
 
@@ -35,11 +33,96 @@ function esc(s: string) {
     .replace(/"/g, "&" + "quot;");
 }
 
-function stakeRadius(z: number) {
-  if (z >= 19) return 2.6;
-  if (z >= 17) return 2;
-  if (z >= 15) return 1.35;
-  return 0.9;
+const BALLOON_MIN_ZOOM = 18;
+
+type LL = typeof import("leaflet");
+
+function attachCloseBalloons(
+  L: LL,
+  map: import("leaflet").Map,
+  matchRef: { current: Match | null },
+) {
+  const canvas = L.DomUtil.create("canvas", "stake-canvas") as HTMLCanvasElement;
+  canvas.style.pointerEvents = "none";
+  map.getPanes().overlayPane.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return () => canvas.remove();
+
+  const draw = () => {
+    const z = map.getZoom();
+    if (z < BALLOON_MIN_ZOOM) {
+      if (canvas.width) {
+        canvas.width = 0;
+        canvas.height = 0;
+      }
+      canvas.style.display = "none";
+      return;
+    }
+    canvas.style.display = "";
+
+    const size = map.getSize();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssW = size.x;
+    const cssH = size.y;
+    if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      canvas.style.width = `${cssW}px`;
+      canvas.style.height = `${cssH}px`;
+    }
+    L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    const b = map.getBounds();
+    const visible = stakesInRect(
+      {
+        south: b.getSouth(),
+        west: b.getWest(),
+        north: b.getNorth(),
+        east: b.getEast(),
+      },
+      48,
+    );
+    const skip = matchRef.current?.estaca ?? null;
+
+    ctx.font = "700 10px IBM Plex Sans, ui-sans-serif, system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    for (const st of visible) {
+      if (skip != null && st.number === skip) continue;
+      const p = map.latLngToContainerPoint(st.pos);
+      const label = String(st.number);
+      const tw = ctx.measureText(label).width;
+      const bw = tw + 8;
+      const bh = 14;
+      const x = p.x;
+      const y = p.y - 10;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") ctx.roundRect(x - bw / 2, y - bh / 2, bw, bh, 4);
+      else ctx.rect(x - bw / 2, y - bh / 2, bw, bh);
+      ctx.fillStyle = "#f5c518";
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#0f172a";
+      ctx.stroke();
+      ctx.fillStyle = "#0f172a";
+      ctx.fillText(label, x, y + 0.5);
+    }
+  };
+
+  map.on("move", draw);
+  map.on("zoom", draw);
+  map.on("resize", draw);
+  draw();
+
+  return () => {
+    map.off("move", draw);
+    map.off("zoom", draw);
+    map.off("resize", draw);
+    canvas.remove();
+  };
 }
 
 export function StakeMap({
@@ -54,22 +137,25 @@ export function StakeMap({
   const hostRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<import("leaflet").Map | null>(null);
   const LRef = useRef<typeof import("leaflet") | null>(null);
-  const highlightRef = useRef<import("leaflet").Polyline | null>(null);
-  const balloonRef = useRef<import("leaflet").Marker | null>(null);
+  const balloonRef = useRef<(import("leaflet").Marker & { _txt?: string }) | null>(null);
   const userRef = useRef<import("leaflet").CircleMarker | null>(null);
   const accRef = useRef<import("leaflet").Circle | null>(null);
-  const stakeLayerRef = useRef<import("leaflet").LayerGroup | null>(null);
   const pinLayerRef = useRef<import("leaflet").LayerGroup | null>(null);
+  const pinMarkersRef = useRef<Map<string, import("leaflet").Marker>>(new Map());
   const lastCenterRef = useRef<LatLng | null>(null);
+  const draggingRef = useRef(false);
   const [ready, setReady] = useState(false);
   const followRef = useRef(follow);
   followRef.current = follow;
-  const pinsRef = useRef(pins);
-  pinsRef.current = pins;
+  const onDragRef = useRef(onUserDrag);
+  onDragRef.current = onUserDrag;
+  const matchRef = useRef(match);
+  matchRef.current = match;
 
   useEffect(() => {
     if (!hostRef.current || mapRef.current) return;
     let cancelled = false;
+    let detach: (() => void) | undefined;
 
     void import("leaflet").then((mod) => {
       if (cancelled || !hostRef.current || mapRef.current) return;
@@ -81,94 +167,35 @@ export function StakeMap({
         zoom: 18,
         zoomControl: false,
         attributionControl: false,
-        preferCanvas: true,
         zoomAnimation: false,
         markerZoomAnimation: false,
         fadeAnimation: false,
+        inertia: true,
+        bounceAtZoomLimits: false,
       });
       L.control.zoom({ position: "bottomleft" }).addTo(map);
-      requestAnimationFrame(() => map.invalidateSize());
 
       L.tileLayer(GOOGLE_HYBRID_TILES, {
         subdomains: ["0", "1", "2", "3"],
         maxZoom: 21,
         maxNativeZoom: 20,
         updateWhenIdle: true,
-        keepBuffer: 1,
+        updateWhenZooming: false,
+        keepBuffer: 8,
+        className: "map-tiles",
         attribution: "Google",
       }).addTo(map);
 
-      for (const s of STREETS) {
-        L.polyline(
-          s.path.map((p) => [p.lat, p.lng] as [number, number]),
-          { color: "#38bdf8", weight: 2, opacity: 0.45, interactive: false },
-        ).addTo(map);
-      }
-
-      const canvas = L.canvas({ padding: 0.4 });
-      const stakes = L.layerGroup().addTo(map);
-      const r0 = stakeRadius(map.getZoom());
-      for (const st of getAllStakes()) {
-        L.circleMarker([st.pos.lat, st.pos.lng], {
-          radius: r0,
-          color: "transparent",
-          weight: 0,
-          fillColor: "#e2e8f0",
-          fillOpacity: 0.55,
-          interactive: false,
-          renderer: canvas,
-        }).addTo(stakes);
-      }
-      stakeLayerRef.current = stakes;
       pinLayerRef.current = L.layerGroup().addTo(map);
-      const labels = L.layerGroup().addTo(map);
-
-      const renderLabels = () => {
-        labels.clearLayers();
-        const z = map.getZoom();
-        if (z < 16) return;
-        const b = map.getBounds();
-        const visible = stakesInRect(
-          {
-            south: b.getSouth(),
-            west: b.getWest(),
-            north: b.getNorth(),
-            east: b.getEast(),
-          },
-          180,
-        );
-        const step = z >= 18 ? 1 : z >= 17 ? 2 : 4;
-        for (let i = 0; i < visible.length; i += step) {
-          const st = visible[i];
-          L.marker([st.pos.lat, st.pos.lng], {
-            icon: L.divIcon({
-              className: "stake-chip",
-              html: `<span class="stake-chip-inner">${st.number}</span>`,
-              iconSize: [36, 16],
-              iconAnchor: [18, 22],
-            }),
-            interactive: false,
-            keyboard: false,
-          }).addTo(labels);
-        }
-      };
-
-      map.on("dragstart", () => onUserDrag());
-      let labelTimer: number | null = null;
-      const scheduleLabels = () => {
-        if (labelTimer) window.clearTimeout(labelTimer);
-        labelTimer = window.setTimeout(renderLabels, 80);
-      };
-      map.on("moveend", scheduleLabels);
-      map.on("zoomend", () => {
-        const r = stakeRadius(map.getZoom());
-        stakes.eachLayer((layer) => {
-          const c = layer as import("leaflet").CircleMarker;
-          if (typeof c.setRadius === "function") c.setRadius(r);
-        });
-        scheduleLabels();
+      detach = attachCloseBalloons(L, map, matchRef);
+      map.on("dragstart", () => {
+        draggingRef.current = true;
+        onDragRef.current();
       });
-      renderLabels();
+      map.on("dragend", () => {
+        draggingRef.current = false;
+      });
+      requestAnimationFrame(() => map.invalidateSize());
 
       mapRef.current = map;
       setReady(true);
@@ -176,10 +203,11 @@ export function StakeMap({
 
     return () => {
       cancelled = true;
+      detach?.();
       mapRef.current?.remove();
       mapRef.current = null;
+      pinMarkersRef.current.clear();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -188,19 +216,23 @@ export function StakeMap({
     if (!map || !L || !position) return;
     if (!userRef.current) {
       userRef.current = L.circleMarker([position.lat, position.lng], {
-        radius: 8,
+        radius: 7,
         color: "#0f172a",
         weight: 2,
         fillColor: "#22d3ee",
         fillOpacity: 1,
         interactive: false,
       }).addTo(map);
-      map.setView([position.lat, position.lng], map.getZoom());
+      map.setView([position.lat, position.lng], map.getZoom(), { animate: false });
       lastCenterRef.current = position;
     } else {
       userRef.current.setLatLng([position.lat, position.lng]);
       const last = lastCenterRef.current;
-      if (followRef.current && (!last || haversine(last, position) > 18)) {
+      if (
+        followRef.current &&
+        !draggingRef.current &&
+        (!last || haversine(last, position) > 32)
+      ) {
         map.panTo([position.lat, position.lng], { animate: false });
         lastCenterRef.current = position;
       }
@@ -211,9 +243,9 @@ export function StakeMap({
           radius: accuracy,
           color: "#22d3ee",
           weight: 1,
-          opacity: 0.4,
+          opacity: 0.3,
           fillColor: "#22d3ee",
-          fillOpacity: 0.12,
+          fillOpacity: 0.06,
           interactive: false,
         }).addTo(map);
       } else {
@@ -228,41 +260,38 @@ export function StakeMap({
     const L = LRef.current;
     if (!map || !L) return;
     if (!match) {
-      highlightRef.current?.remove();
-      highlightRef.current = null;
       balloonRef.current?.remove();
       balloonRef.current = null;
       return;
     }
-    const path = match.street.path.map((p) => [p.lat, p.lng] as [number, number]);
-    if (!highlightRef.current) {
-      highlightRef.current = L.polyline(path, {
-        color: "#f5c518",
-        weight: 5,
-        opacity: 1,
-        interactive: false,
-      }).addTo(map);
-    } else {
-      highlightRef.current.setLatLngs(path);
-    }
-
     const text = `E-${match.estaca}`;
-    const icon = L.divIcon({
-      className: "stake-balloon",
-      html: `<div class="stake-balloon-inner">${text}</div>`,
-      iconSize: [56, 28],
-      iconAnchor: [28, 30],
-    });
     if (!balloonRef.current) {
       balloonRef.current = L.marker([match.snapped.lat, match.snapped.lng], {
-        icon,
+        icon: L.divIcon({
+          className: "stake-balloon",
+          html: `<div class="stake-balloon-inner">${text}</div>`,
+          iconSize: [56, 28],
+          iconAnchor: [28, 30],
+        }),
         interactive: false,
         zIndexOffset: 900,
       }).addTo(map);
-    } else {
-      balloonRef.current.setLatLng([match.snapped.lat, match.snapped.lng]);
-      balloonRef.current.setIcon(icon);
+      balloonRef.current._txt = text;
+      return;
     }
+    balloonRef.current.setLatLng([match.snapped.lat, match.snapped.lng]);
+    if (balloonRef.current._txt !== text) {
+      balloonRef.current.setIcon(
+        L.divIcon({
+          className: "stake-balloon",
+          html: `<div class="stake-balloon-inner">${text}</div>`,
+          iconSize: [56, 28],
+          iconAnchor: [28, 30],
+        }),
+      );
+      balloonRef.current._txt = text;
+    }
+    map.fire("move");
   }, [match, ready]);
 
   useEffect(() => {
@@ -270,17 +299,33 @@ export function StakeMap({
     const L = LRef.current;
     const layer = pinLayerRef.current;
     if (!map || !L || !layer || !ready) return;
-    layer.clearLayers();
+    const keep = new Set(pins.map((p) => p.id));
+    const markers = pinMarkersRef.current;
+
+    for (const [id, marker] of markers) {
+      if (!keep.has(id)) {
+        layer.removeLayer(marker);
+        markers.delete(id);
+      }
+    }
+
     for (const pin of pins) {
-      const machine = pin.kind === "machine";
-      const sub = pin.sub ? `<span>${esc(pin.sub)}</span>` : "";
-      const icon = L.divIcon({
-        className: machine ? "live-pin machine" : "live-pin crew",
-        html: `<div class="live-pin-inner"><i></i><b>${esc(pin.label)}</b>${sub}</div>`,
-        iconSize: [120, 36],
-        iconAnchor: [16, 18],
-      });
-      L.marker([pin.lat, pin.lng], { icon, interactive: false, zIndexOffset: 700 }).addTo(layer);
+      const existing = markers.get(pin.id);
+      if (existing) {
+        existing.setLatLng([pin.lat, pin.lng]);
+        continue;
+      }
+      const marker = L.marker([pin.lat, pin.lng], {
+        icon: L.divIcon({
+          className: pin.kind === "machine" ? "live-pin machine" : "live-pin crew",
+          html: `<div class="live-pin-inner"><i></i><b>${esc(pin.label)}</b></div>`,
+          iconSize: [120, 36],
+          iconAnchor: [16, 18],
+        }),
+        interactive: false,
+        zIndexOffset: 700,
+      }).addTo(layer);
+      markers.set(pin.id, marker);
     }
   }, [pins, ready]);
 
@@ -288,7 +333,7 @@ export function StakeMap({
     if (!recenterNonce) return;
     const map = mapRef.current;
     if (!map || !position) return;
-    map.panTo([position.lat, position.lng]);
+    map.panTo([position.lat, position.lng], { animate: false });
     lastCenterRef.current = position;
   }, [recenterNonce, position]);
 

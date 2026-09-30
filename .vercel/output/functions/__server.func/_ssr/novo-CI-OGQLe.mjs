@@ -13,8 +13,8 @@ import { n as toast } from "../_libs/sonner.mjs";
 import { n as ChoiceList, t as ChipRow } from "./choice-DtEvLaaF.mjs";
 import { n as Label, r as Textarea, t as Input } from "./input-BKnui5bz.mjs";
 import { t as usePlaceLabel } from "./place-Ds6fBKm3.mjs";
-import { n as Route$1 } from "./router-BW3CXpVn.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/novo-DCa3KbBk.js
+import { n as Route$1 } from "./router-BTCFmiPK.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/novo-CI-OGQLe.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ApontamentoForm({ draft, onChange, onSubmit, submitLabel = "Salvar", works, streets, equipment, activities, gps, locationLabel, saveState, onAddActivity, openHint, onEncerrar }) {

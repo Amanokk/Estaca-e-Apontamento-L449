@@ -35,7 +35,9 @@
   "verdictFile": "/workspace/screenshots/prod-preview.json",
   "divergesFromBaseline": true,
   "baselineReasons": [
+    "desktop: canvas disappeared",
     "desktop: body text replaced (similar length, page start changed)",
+    "mobile: canvas disappeared",
     "mobile: body text replaced (similar length, page start changed)"
   ]
 }

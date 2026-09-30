@@ -243,21 +243,6 @@ function Index() {
           </div>
         </div>
 
-        <div className="pointer-events-none absolute bottom-20 left-3 z-20 rounded-xl border border-border bg-bg/80 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted backdrop-blur-md">
-          <p className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-fg/70" /> Estacas
-          </p>
-          <p className="mt-1 flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-ok" /> Equipe disponível
-          </p>
-          <p className="mt-1 flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-accent" /> Máquina em atividade
-          </p>
-          <p className="mt-1 flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-gps" /> Você
-          </p>
-        </div>
-
         <button
           type="button"
           onClick={recenter}
