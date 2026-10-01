@@ -33,7 +33,7 @@ function esc(s: string) {
     .replace(/"/g, "&" + "quot;");
 }
 
-const BALLOON_MIN_ZOOM = 18;
+const BALLOON_MIN_ZOOM = 17;
 
 type LL = typeof import("leaflet");
 
@@ -42,38 +42,26 @@ function attachCloseBalloons(
   map: import("leaflet").Map,
   matchRef: { current: Match | null },
 ) {
-  const canvas = L.DomUtil.create("canvas", "stake-canvas") as HTMLCanvasElement;
-  canvas.style.pointerEvents = "none";
-  map.getPanes().overlayPane.appendChild(canvas);
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return () => canvas.remove();
+  const layer = L.layerGroup().addTo(map);
+  const markers = new Map<number, import("leaflet").Marker>();
 
-  const draw = () => {
+  const iconFor = (n: number) =>
+    L.divIcon({
+      className: "stake-chip",
+      html: `<span class="stake-chip-inner">${n}</span>`,
+      iconSize: [36, 16],
+      iconAnchor: [18, 18],
+    });
+
+  const sync = () => {
     const z = map.getZoom();
     if (z < BALLOON_MIN_ZOOM) {
-      if (canvas.width) {
-        canvas.width = 0;
-        canvas.height = 0;
+      if (markers.size) {
+        layer.clearLayers();
+        markers.clear();
       }
-      canvas.style.display = "none";
       return;
     }
-    canvas.style.display = "";
-
-    const size = map.getSize();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const cssW = size.x;
-    const cssH = size.y;
-    if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
-      canvas.width = Math.round(cssW * dpr);
-      canvas.height = Math.round(cssH * dpr);
-      canvas.style.width = `${cssW}px`;
-      canvas.style.height = `${cssH}px`;
-    }
-    L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, cssW, cssH);
-
     const b = map.getBounds();
     const visible = stakesInRect(
       {
@@ -82,46 +70,42 @@ function attachCloseBalloons(
         north: b.getNorth(),
         east: b.getEast(),
       },
-      48,
+      40,
     );
     const skip = matchRef.current?.estaca ?? null;
-
-    ctx.font = "700 10px IBM Plex Sans, ui-sans-serif, system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
+    const keep = new Set<number>();
     for (const st of visible) {
       if (skip != null && st.number === skip) continue;
-      const p = map.latLngToContainerPoint(st.pos);
-      const label = String(st.number);
-      const tw = ctx.measureText(label).width;
-      const bw = tw + 8;
-      const bh = 14;
-      const x = p.x;
-      const y = p.y - 10;
-      ctx.beginPath();
-      if (typeof ctx.roundRect === "function") ctx.roundRect(x - bw / 2, y - bh / 2, bw, bh, 4);
-      else ctx.rect(x - bw / 2, y - bh / 2, bw, bh);
-      ctx.fillStyle = "#f5c518";
-      ctx.fill();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "#0f172a";
-      ctx.stroke();
-      ctx.fillStyle = "#0f172a";
-      ctx.fillText(label, x, y + 0.5);
+      keep.add(st.number);
+      if (!markers.has(st.number)) {
+        const marker = L.marker([st.pos.lat, st.pos.lng], {
+          icon: iconFor(st.number),
+          interactive: false,
+          keyboard: false,
+          zIndexOffset: 200,
+        }).addTo(layer);
+        markers.set(st.number, marker);
+      }
+    }
+    for (const [n, marker] of markers) {
+      if (!keep.has(n)) {
+        layer.removeLayer(marker);
+        markers.delete(n);
+      }
     }
   };
 
-  map.on("move", draw);
-  map.on("zoom", draw);
-  map.on("resize", draw);
-  draw();
+  map.on("moveend", sync);
+  map.on("zoomend", sync);
+  map.whenReady(sync);
+  const later = window.setTimeout(sync, 350);
 
   return () => {
-    map.off("move", draw);
-    map.off("zoom", draw);
-    map.off("resize", draw);
-    canvas.remove();
+    window.clearTimeout(later);
+    map.off("moveend", sync);
+    map.off("zoomend", sync);
+    layer.remove();
+    markers.clear();
   };
 }
 
@@ -262,6 +246,7 @@ export function StakeMap({
     if (!match) {
       balloonRef.current?.remove();
       balloonRef.current = null;
+      map.fire("moveend");
       return;
     }
     const text = `E-${match.estaca}`;
@@ -277,21 +262,21 @@ export function StakeMap({
         zIndexOffset: 900,
       }).addTo(map);
       balloonRef.current._txt = text;
-      return;
+    } else {
+      balloonRef.current.setLatLng([match.snapped.lat, match.snapped.lng]);
+      if (balloonRef.current._txt !== text) {
+        balloonRef.current.setIcon(
+          L.divIcon({
+            className: "stake-balloon",
+            html: `<div class="stake-balloon-inner">${text}</div>`,
+            iconSize: [56, 28],
+            iconAnchor: [28, 30],
+          }),
+        );
+        balloonRef.current._txt = text;
+      }
     }
-    balloonRef.current.setLatLng([match.snapped.lat, match.snapped.lng]);
-    if (balloonRef.current._txt !== text) {
-      balloonRef.current.setIcon(
-        L.divIcon({
-          className: "stake-balloon",
-          html: `<div class="stake-balloon-inner">${text}</div>`,
-          iconSize: [56, 28],
-          iconAnchor: [28, 30],
-        }),
-      );
-      balloonRef.current._txt = text;
-    }
-    map.fire("move");
+    map.fire("moveend");
   }, [match, ready]);
 
   useEffect(() => {
