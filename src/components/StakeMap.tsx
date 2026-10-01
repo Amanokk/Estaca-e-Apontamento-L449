@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import type { LatLng } from "@/lib/geo";
 import { haversine } from "@/lib/geo";
-import { getAllStakes } from "@/lib/stakePoints";
+import { stakesInRect } from "@/lib/stakeIndex";
 import { PROJECT_CENTER, type Match } from "@/lib/findStake";
 import { GOOGLE_HYBRID_TILES } from "@/lib/googleMaps";
 
@@ -35,14 +35,16 @@ function esc(s: string) {
 
 type LL = typeof import("leaflet");
 
-function addAllStakeBalloons(L: LL, map: import("leaflet").Map) {
+function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
   map.createPane("stakes");
   const pane = map.getPane("stakes");
-  if (!pane) return () => undefined;
-  pane.style.zIndex = "550";
-  pane.style.pointerEvents = "none";
+  if (pane) {
+    pane.style.zIndex = "550";
+    pane.style.pointerEvents = "none";
+  }
 
   const group = L.layerGroup().addTo(map);
+  const markers = new Map<string, import("leaflet").Marker>();
   const icons = new Map<number, import("leaflet").DivIcon>();
   const iconFor = (n: number) => {
     let icon = icons.get(n);
@@ -58,24 +60,57 @@ function addAllStakeBalloons(L: LL, map: import("leaflet").Map) {
     return icon;
   };
 
-  for (const st of getAllStakes()) {
-    L.marker([st.pos.lat, st.pos.lng], {
-      icon: iconFor(st.number),
-      pane: "stakes",
-      interactive: false,
-      keyboard: false,
-    }).addTo(group);
-  }
-
-  const applyZoom = () => {
-    pane.style.visibility = map.getZoom() >= 15 ? "visible" : "hidden";
+  const sync = () => {
+    if (map.getZoom() < 16) {
+      if (markers.size) {
+        group.clearLayers();
+        markers.clear();
+      }
+      return;
+    }
+    const b = map.getBounds();
+    const visible = stakesInRect(
+      {
+        south: b.getSouth(),
+        west: b.getWest(),
+        north: b.getNorth(),
+        east: b.getEast(),
+      },
+      80,
+    );
+    const keep = new Set<string>();
+    for (const st of visible) {
+      const id = `${st.street.name}:${st.number}:${st.pos.lat.toFixed(5)}`;
+      keep.add(id);
+      if (markers.has(id)) continue;
+      const marker = L.marker([st.pos.lat, st.pos.lng], {
+        icon: iconFor(st.number),
+        pane: "stakes",
+        interactive: false,
+        keyboard: false,
+      }).addTo(group);
+      markers.set(id, marker);
+    }
+    for (const [id, marker] of markers) {
+      if (keep.has(id)) continue;
+      group.removeLayer(marker);
+      markers.delete(id);
+    }
   };
-  map.on("zoomend", applyZoom);
-  applyZoom();
+
+  map.on("moveend", sync);
+  map.on("zoomend", sync);
+  map.on("resize", sync);
+  map.whenReady(sync);
+  const later = window.setTimeout(sync, 200);
 
   return () => {
-    map.off("zoomend", applyZoom);
+    window.clearTimeout(later);
+    map.off("moveend", sync);
+    map.off("zoomend", sync);
+    map.off("resize", sync);
     group.remove();
+    markers.clear();
   };
 }
 
@@ -139,7 +174,7 @@ export function StakeMap({
       }).addTo(map);
 
       pinLayerRef.current = L.layerGroup().addTo(map);
-      detach = addAllStakeBalloons(L, map);
+      detach = attachVisibleBalloons(L, map);
       map.on("dragstart", () => {
         draggingRef.current = true;
         onDragRef.current();
