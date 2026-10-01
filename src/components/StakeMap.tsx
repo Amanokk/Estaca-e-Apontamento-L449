@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import type { LatLng } from "@/lib/geo";
 import { haversine } from "@/lib/geo";
-import { stakesInRect } from "@/lib/stakeIndex";
+import { getAllStakes } from "@/lib/stakePoints";
 import { PROJECT_CENTER, type Match } from "@/lib/findStake";
 import { GOOGLE_HYBRID_TILES } from "@/lib/googleMaps";
 
@@ -33,79 +33,49 @@ function esc(s: string) {
     .replace(/"/g, "&" + "quot;");
 }
 
-const BALLOON_MIN_ZOOM = 17;
-
 type LL = typeof import("leaflet");
 
-function attachCloseBalloons(
-  L: LL,
-  map: import("leaflet").Map,
-  matchRef: { current: Match | null },
-) {
-  const layer = L.layerGroup().addTo(map);
-  const markers = new Map<number, import("leaflet").Marker>();
+function addAllStakeBalloons(L: LL, map: import("leaflet").Map) {
+  map.createPane("stakes");
+  const pane = map.getPane("stakes");
+  if (!pane) return () => undefined;
+  pane.style.zIndex = "550";
+  pane.style.pointerEvents = "none";
 
-  const iconFor = (n: number) =>
-    L.divIcon({
-      className: "stake-chip",
-      html: `<span class="stake-chip-inner">${n}</span>`,
-      iconSize: [36, 16],
-      iconAnchor: [18, 18],
-    });
-
-  const sync = () => {
-    const z = map.getZoom();
-    if (z < BALLOON_MIN_ZOOM) {
-      if (markers.size) {
-        layer.clearLayers();
-        markers.clear();
-      }
-      return;
+  const group = L.layerGroup().addTo(map);
+  const icons = new Map<number, import("leaflet").DivIcon>();
+  const iconFor = (n: number) => {
+    let icon = icons.get(n);
+    if (!icon) {
+      icon = L.divIcon({
+        className: "stake-chip",
+        html: `<span class="stake-chip-inner">${n}</span>`,
+        iconSize: [36, 18],
+        iconAnchor: [18, 18],
+      });
+      icons.set(n, icon);
     }
-    const b = map.getBounds();
-    const visible = stakesInRect(
-      {
-        south: b.getSouth(),
-        west: b.getWest(),
-        north: b.getNorth(),
-        east: b.getEast(),
-      },
-      40,
-    );
-    const skip = matchRef.current?.estaca ?? null;
-    const keep = new Set<number>();
-    for (const st of visible) {
-      if (skip != null && st.number === skip) continue;
-      keep.add(st.number);
-      if (!markers.has(st.number)) {
-        const marker = L.marker([st.pos.lat, st.pos.lng], {
-          icon: iconFor(st.number),
-          interactive: false,
-          keyboard: false,
-          zIndexOffset: 200,
-        }).addTo(layer);
-        markers.set(st.number, marker);
-      }
-    }
-    for (const [n, marker] of markers) {
-      if (!keep.has(n)) {
-        layer.removeLayer(marker);
-        markers.delete(n);
-      }
-    }
+    return icon;
   };
 
-  map.on("moveend", sync);
-  map.on("zoomend", sync);
-  map.whenReady(sync);
-  const later = window.setTimeout(sync, 350);
+  for (const st of getAllStakes()) {
+    L.marker([st.pos.lat, st.pos.lng], {
+      icon: iconFor(st.number),
+      pane: "stakes",
+      interactive: false,
+      keyboard: false,
+    }).addTo(group);
+  }
+
+  const applyZoom = () => {
+    pane.style.visibility = map.getZoom() >= 15 ? "visible" : "hidden";
+  };
+  map.on("zoomend", applyZoom);
+  applyZoom();
 
   return () => {
-    window.clearTimeout(later);
-    map.off("moveend", sync);
-    map.off("zoomend", sync);
-    layer.remove();
-    markers.clear();
+    map.off("zoomend", applyZoom);
+    group.remove();
   };
 }
 
@@ -133,8 +103,6 @@ export function StakeMap({
   followRef.current = follow;
   const onDragRef = useRef(onUserDrag);
   onDragRef.current = onUserDrag;
-  const matchRef = useRef(match);
-  matchRef.current = match;
 
   useEffect(() => {
     if (!hostRef.current || mapRef.current) return;
@@ -171,7 +139,7 @@ export function StakeMap({
       }).addTo(map);
 
       pinLayerRef.current = L.layerGroup().addTo(map);
-      detach = attachCloseBalloons(L, map, matchRef);
+      detach = addAllStakeBalloons(L, map);
       map.on("dragstart", () => {
         draggingRef.current = true;
         onDragRef.current();
@@ -246,7 +214,6 @@ export function StakeMap({
     if (!match) {
       balloonRef.current?.remove();
       balloonRef.current = null;
-      map.fire("moveend");
       return;
     }
     const text = `E-${match.estaca}`;
@@ -262,21 +229,20 @@ export function StakeMap({
         zIndexOffset: 900,
       }).addTo(map);
       balloonRef.current._txt = text;
-    } else {
-      balloonRef.current.setLatLng([match.snapped.lat, match.snapped.lng]);
-      if (balloonRef.current._txt !== text) {
-        balloonRef.current.setIcon(
-          L.divIcon({
-            className: "stake-balloon",
-            html: `<div class="stake-balloon-inner">${text}</div>`,
-            iconSize: [56, 28],
-            iconAnchor: [28, 30],
-          }),
-        );
-        balloonRef.current._txt = text;
-      }
+      return;
     }
-    map.fire("moveend");
+    balloonRef.current.setLatLng([match.snapped.lat, match.snapped.lng]);
+    if (balloonRef.current._txt !== text) {
+      balloonRef.current.setIcon(
+        L.divIcon({
+          className: "stake-balloon",
+          html: `<div class="stake-balloon-inner">${text}</div>`,
+          iconSize: [56, 28],
+          iconAnchor: [28, 30],
+        }),
+      );
+      balloonRef.current._txt = text;
+    }
   }, [match, ready]);
 
   useEffect(() => {

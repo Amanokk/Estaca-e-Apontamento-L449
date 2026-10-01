@@ -169,23 +169,29 @@
   border-bottom-width: 0;
 }
 
+.leaflet-stakes-pane {
+  z-index: 550;
+  pointer-events: none;
+}
+
 .stake-chip {
   background: transparent !important;
   border: none !important;
 }
 
 .stake-chip-inner {
-  display: inline-block;
+  display: block;
   background: #f5c518;
   color: #0f172a;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
-  line-height: 1;
-  padding: 2px 5px;
+  line-height: 1.15;
+  padding: 3px 6px;
   border-radius: 4px;
   border: 1px solid #0f172a;
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
   white-space: nowrap;
+  text-align: center;
 }
 
 .live-pin {
