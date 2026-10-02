@@ -64,7 +64,9 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
     `${street}:${n}:${lat.toFixed(6)}:${lng.toFixed(6)}`;
 
   const sync = () => {
-    if (map.getZoom() < 16) {
+    const size = map.getSize();
+    const z = map.getZoom();
+    if (size.x < 80 || size.y < 80 || z < 17) {
       if (markers.size) {
         group.clearLayers();
         markers.clear();
@@ -72,6 +74,15 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
       return;
     }
     const b = map.getBounds();
+    const latSpan = b.getNorth() - b.getSouth();
+    const lngSpan = b.getEast() - b.getWest();
+    if (latSpan > 0.008 || lngSpan > 0.008 || latSpan <= 0 || lngSpan <= 0) {
+      if (markers.size) {
+        group.clearLayers();
+        markers.clear();
+      }
+      return;
+    }
     let visible = stakesInRect(
       {
         south: b.getSouth(),
@@ -79,9 +90,9 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
         north: b.getNorth(),
         east: b.getEast(),
       },
-      200,
+      40,
     );
-    if (visible.length > 64) {
+    if (visible.length > 20) {
       const c = map.getCenter();
       visible = visible
         .map((st) => ({
@@ -89,7 +100,7 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
           d: Math.abs(st.pos.lat - c.lat) + Math.abs(st.pos.lng - c.lng),
         }))
         .sort((a, b) => a.d - b.d)
-        .slice(0, 64)
+        .slice(0, 20)
         .map((x) => x.st);
     }
     const keep = new Set<string>();

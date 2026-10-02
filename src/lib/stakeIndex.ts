@@ -25,11 +25,18 @@ export type BoundsRect = { south: number; west: number; north: number; east: num
 
 export function stakesInRect(rect: BoundsRect, limit: number): StakePoint[] {
   const g = getGrid();
-  const out: StakePoint[] = [];
+  const latSpan = rect.north - rect.south;
+  const lngSpan = rect.east - rect.west;
+  if (latSpan <= 0 || lngSpan <= 0) return [];
+  if (latSpan > 0.02 || lngSpan > 0.02) return [];
+
   const y0 = Math.floor(rect.south / CELL);
   const y1 = Math.floor(rect.north / CELL);
   const x0 = Math.floor(rect.west / CELL);
   const x1 = Math.floor(rect.east / CELL);
+  if (y1 - y0 > 12 || x1 - x0 > 12) return [];
+
+  const out: StakePoint[] = [];
   for (let y = y0; y <= y1; y++) {
     for (let x = x0; x <= x1; x++) {
       const bucket = g.get(`${y}:${x}`);
