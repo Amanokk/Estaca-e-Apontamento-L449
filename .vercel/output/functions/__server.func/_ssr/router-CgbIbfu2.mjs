@@ -1,12 +1,12 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
-import { _ as createFileRoute, d as HeadContent, g as lazyRouteComponent, h as Outlet, m as createRouter, u as Scripts, v as createRootRoute, x as useRouter } from "../_libs/@tanstack/react-router+[...].mjs";
+import { C as useRouter, _ as Outlet, b as createRootRoute, f as Scripts, g as createRouter, p as HeadContent, v as lazyRouteComponent, y as createFileRoute } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as require_jsx_runtime, r as QueryClientProvider } from "../_libs/react+tanstack__react-query.mjs";
 import { a as number, c as union, i as literal, o as object, s as string } from "../_libs/zod.mjs";
 import { a as TriangleAlert } from "../_libs/lucide-react.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
 import { t as Toaster } from "../_libs/sonner.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-BTCFmiPK.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-CgbIbfu2.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var __defProp = Object.defineProperty;
@@ -329,7 +329,7 @@ function AppQueryProvider({ children }) {
 		children
 	});
 }
-var styles_default = "/assets/styles-D1w-uJ-E.css";
+var styles_default = "/assets/styles-f4nPiij3.css";
 var APP_NAME = "Estaca GPS";
 var Route$8 = createRootRoute({
 	head: () => ({
@@ -393,7 +393,7 @@ var Route$8 = createRootRoute({
 		})]
 	})
 });
-var $$splitComponentImporter$7 = () => import("./routes-RGwV2f-c.mjs");
+var $$splitComponentImporter$7 = () => import("./routes-pyPnycjT.mjs");
 var Route$7 = createFileRoute("/")({ component: lazyRouteComponent($$splitComponentImporter$7, "component") });
 var $$splitComponentImporter$6 = () => import("./apontamento-DMYrCD6w.mjs");
 var Route$6 = createFileRoute("/apontamento")({ component: lazyRouteComponent($$splitComponentImporter$6, "component") });
@@ -405,7 +405,7 @@ var $$splitComponentImporter$3 = () => import("./historico-CL6IZOPK.mjs");
 var Route$3 = createFileRoute("/historico")({ component: lazyRouteComponent($$splitComponentImporter$3, "component") });
 var $$splitComponentImporter$2 = () => import("./mapa-Nn9KvyAB.mjs");
 var Route$2 = createFileRoute("/mapa")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
-var $$splitComponentImporter$1 = () => import("./novo-CI-OGQLe.mjs");
+var $$splitComponentImporter$1 = () => import("./novo-BP9ZoslQ.mjs");
 var Route$1 = createFileRoute("/novo")({
 	validateSearch: (raw) => {
 		const out = {};

@@ -1,0 +1,41 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Estaca GPS",
+      "hasCanvas": false,
+      "bodyTextLen": 198,
+      "bodyTextHash": "445a85494a07ebca1ef4b4844b27e6e6d0a33090ac88806b1100b4c5ec33b387",
+      "bodyTextPrefix": "Estaca GPS L449 · SÃO JOAQUIM L449 · SÃO JOAQUIM Só neste aparel",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Estaca GPS",
+      "hasCanvas": false,
+      "bodyTextLen": 198,
+      "bodyTextHash": "445a85494a07ebca1ef4b4844b27e6e6d0a33090ac88806b1100b4c5ec33b387",
+      "bodyTextPrefix": "Estaca GPS L449 · SÃO JOAQUIM L449 · SÃO JOAQUIM Só neste aparel",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview-built.json",
+  "divergesFromBaseline": true,
+  "baselineReasons": [
+    "desktop: body text replaced (similar length, page start changed)",
+    "mobile: body text replaced (similar length, page start changed)"
+  ]
+}

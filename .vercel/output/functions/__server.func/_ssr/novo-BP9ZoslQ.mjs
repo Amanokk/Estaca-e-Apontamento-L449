@@ -1,6 +1,6 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
-import { b as useNavigate } from "../_libs/@tanstack/react-router+[...].mjs";
+import { S as useNavigate } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
 import { l as todayISO, s as nowHHMM, t as cn, u as uid } from "./utils-C8V_sHGQ.mjs";
 import { a as PV_PREFIXES, i as NOTE_CHIPS, l as buildDescription, o as QUANTITY_LABEL, r as KIND_LABEL } from "./description--QsXGJw3.mjs";
@@ -13,8 +13,8 @@ import { n as toast } from "../_libs/sonner.mjs";
 import { n as ChoiceList, t as ChipRow } from "./choice-DtEvLaaF.mjs";
 import { n as Label, r as Textarea, t as Input } from "./input-BKnui5bz.mjs";
 import { t as usePlaceLabel } from "./place-Ds6fBKm3.mjs";
-import { n as Route$1 } from "./router-BTCFmiPK.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/novo-CI-OGQLe.js
+import { n as Route$1 } from "./router-CgbIbfu2.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/novo-BP9ZoslQ.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ApontamentoForm({ draft, onChange, onSubmit, submitLabel = "Salvar", works, streets, equipment, activities, gps, locationLabel, saveState, onAddActivity, openHint, onEncerrar }) {

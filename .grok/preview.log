@@ -285,3 +285,36 @@ Node.js v22.23.2
     at async file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:724:12
     at async file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:694:14
     at async handleServerAction (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:692:9)
+
+> preview
+> node scripts/with-app-env.mjs vite preview
+
+
+ ╭────────── [Build Info] ─────────────╮
+ │                                     │
+ │  - Build Directory: .vercel/output  │
+ │  - Date: 10/2/2026, 12:13:19 PM     │
+ │  - Nitro Version: 3.0.260610-beta   │
+ │  - Nitro Preset: vercel             │
+ │                                     │
+ ╰─────────────────────────────────────╯
+
+  ➜  Local:   http://127.0.0.1:8081/
+[snapshot] falling back to catalog Error: NO_DATABASE
+    at createSql (file:///workspace/.vercel/output/functions/__server.func/_ssr/api-BF2gOBSz.mjs:174:22)
+    at getSql (file:///workspace/.vercel/output/functions/__server.func/_ssr/api-BF2gOBSz.mjs:185:17)
+    at Object.serverFn (file:///workspace/.vercel/output/functions/__server.func/_ssr/api-BF2gOBSz.mjs:343:21)
+    at server (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:633:44)
+    at callNextMiddleware (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:561:26)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async AsyncFunction.__executeServer (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:504:13)
+    at async handleServerAction (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:780:10)
+[snapshot] falling back to catalog Error: NO_DATABASE
+    at createSql (file:///workspace/.vercel/output/functions/__server.func/_ssr/api-BF2gOBSz.mjs:174:22)
+    at getSql (file:///workspace/.vercel/output/functions/__server.func/_ssr/api-BF2gOBSz.mjs:185:17)
+    at Object.serverFn (file:///workspace/.vercel/output/functions/__server.func/_ssr/api-BF2gOBSz.mjs:343:21)
+    at server (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:633:44)
+    at callNextMiddleware (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:561:26)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async AsyncFunction.__executeServer (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:504:13)
+    at async handleServerAction (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:780:10)

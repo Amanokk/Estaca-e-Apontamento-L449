@@ -1,6 +1,6 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
-import { y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
+import { x as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
 import { r as formatDateBR } from "./utils-C8V_sHGQ.mjs";
 import { S as FileSpreadsheet, o as Trash2, u as Search } from "../_libs/lucide-react.mjs";

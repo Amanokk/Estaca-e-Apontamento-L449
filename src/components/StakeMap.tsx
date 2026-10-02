@@ -51,7 +51,7 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
     if (!icon) {
       icon = L.divIcon({
         className: "stake-chip",
-        html: `<span class="stake-chip-inner">${n}</span>`,
+        html: `<span class="stake-chip-inner" style="display:block;background:#f5c518;color:#0f172a;font:800 11px/1.15 ui-sans-serif,system-ui,sans-serif;padding:3px 6px;border-radius:4px;border:1px solid #0f172a;box-shadow:0 1px 4px rgba(0,0,0,.45);white-space:nowrap;text-align:center">${n}</span>`,
         iconSize: [36, 18],
         iconAnchor: [18, 18],
       });
@@ -59,6 +59,9 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
     }
     return icon;
   };
+
+  const stakeId = (street: string, n: number, lat: number, lng: number) =>
+    `${street}:${n}:${lat.toFixed(6)}:${lng.toFixed(6)}`;
 
   const sync = () => {
     if (map.getZoom() < 16) {
@@ -69,18 +72,29 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
       return;
     }
     const b = map.getBounds();
-    const visible = stakesInRect(
+    let visible = stakesInRect(
       {
         south: b.getSouth(),
         west: b.getWest(),
         north: b.getNorth(),
         east: b.getEast(),
       },
-      80,
+      200,
     );
+    if (visible.length > 64) {
+      const c = map.getCenter();
+      visible = visible
+        .map((st) => ({
+          st,
+          d: Math.abs(st.pos.lat - c.lat) + Math.abs(st.pos.lng - c.lng),
+        }))
+        .sort((a, b) => a.d - b.d)
+        .slice(0, 64)
+        .map((x) => x.st);
+    }
     const keep = new Set<string>();
     for (const st of visible) {
-      const id = `${st.street.name}:${st.number}:${st.pos.lat.toFixed(5)}`;
+      const id = stakeId(st.street.name, st.number, st.pos.lat, st.pos.lng);
       keep.add(id);
       if (markers.has(id)) continue;
       const marker = L.marker([st.pos.lat, st.pos.lng], {
@@ -102,10 +116,12 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
   map.on("zoomend", sync);
   map.on("resize", sync);
   map.whenReady(sync);
-  const later = window.setTimeout(sync, 200);
+  const t1 = window.setTimeout(sync, 120);
+  const t2 = window.setTimeout(sync, 600);
 
   return () => {
-    window.clearTimeout(later);
+    window.clearTimeout(t1);
+    window.clearTimeout(t2);
     map.off("moveend", sync);
     map.off("zoomend", sync);
     map.off("resize", sync);

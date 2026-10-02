@@ -1,6 +1,6 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
-import { b as useNavigate, y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
+import { S as useNavigate, x as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
 import { i as formatDuration, l as todayISO, o as minutesBetween, r as formatDateBR, s as nowHHMM } from "./utils-C8V_sHGQ.mjs";
 import { T as Clock, p as Plus, s as Square } from "../_libs/lucide-react.mjs";

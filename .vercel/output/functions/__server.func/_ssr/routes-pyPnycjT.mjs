@@ -1,13 +1,13 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
-import { y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
+import { x as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
 import { t as GOOGLE_HYBRID_TILES } from "./googleMaps-CypfyYWU.mjs";
 import { E as ClipboardList, k as Camera, l as Settings2, n as ZoomOut, r as X, t as ZoomIn, y as LocateFixed } from "../_libs/lucide-react.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
 import { E as useSnapshot, T as usePresencePing, _ as setCrewLabel, c as getDeviceId, f as loadLast, l as gpsQuality, o as fetchMiniMap, s as getCrewLabel, w as useLivePresence } from "./use-snapshot-BTUnFbZn.mjs";
 import { i as downloadDataUrl, n as addExif, o as putPhoto, t as MiniMapThumb, u as useOnlineStatus } from "./MiniMapThumb-Crw4FNrw.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-RGwV2f-c.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-pyPnycjT.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function Splash() {
@@ -1343,6 +1343,12 @@ function getGeometries() {
 	});
 	return cache;
 }
+var flat = null;
+function getAllStakes() {
+	if (flat) return flat;
+	flat = getGeometries().flatMap((g) => g.stakes);
+	return flat;
+}
 var boxes = null;
 function getStreetBoxes() {
 	if (boxes) return boxes;
@@ -1398,6 +1404,32 @@ function quantize(p) {
 function esc(s) {
 	return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+function addAllStakeBalloons(L, map) {
+	const group = L.layerGroup().addTo(map);
+	const icons = /* @__PURE__ */ new Map();
+	const iconFor = (n) => {
+		let icon = icons.get(n);
+		if (!icon) {
+			icon = L.divIcon({
+				className: "stake-chip",
+				html: `<span class="stake-chip-inner" style="display:block;background:#f5c518;color:#0f172a;font:800 11px/1.15 ui-sans-serif,system-ui,sans-serif;padding:3px 6px;border-radius:4px;border:1px solid #0f172a;box-shadow:0 1px 4px rgba(0,0,0,.45);white-space:nowrap;text-align:center">${n}</span>`,
+				iconSize: [36, 18],
+				iconAnchor: [18, 18]
+			});
+			icons.set(n, icon);
+		}
+		return icon;
+	};
+	for (const st of getAllStakes()) L.marker([st.pos.lat, st.pos.lng], {
+		icon: iconFor(st.number),
+		interactive: false,
+		keyboard: false,
+		zIndexOffset: 120
+	}).addTo(group);
+	return () => {
+		group.remove();
+	};
+}
 function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce, pins = [] }) {
 	const hostRef = (0, import_react.useRef)(null);
 	const mapRef = (0, import_react.useRef)(null);
@@ -1417,6 +1449,7 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 	(0, import_react.useEffect)(() => {
 		if (!hostRef.current || mapRef.current) return;
 		let cancelled = false;
+		let detach;
 		import("../_libs/leaflet.mjs").then((n) => /* @__PURE__ */ __toESM(n.t())).then((mod) => {
 			if (cancelled || !hostRef.current || mapRef.current) return;
 			const L = mod.default;
@@ -1449,6 +1482,7 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 				attribution: "Google"
 			}).addTo(map);
 			pinLayerRef.current = L.layerGroup().addTo(map);
+			detach = addAllStakeBalloons(L, map);
 			map.on("dragstart", () => {
 				draggingRef.current = true;
 				onDragRef.current();
@@ -1462,6 +1496,7 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 		});
 		return () => {
 			cancelled = true;
+			detach?.();
 			mapRef.current?.remove();
 			mapRef.current = null;
 			pinMarkersRef.current.clear();
