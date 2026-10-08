@@ -82,11 +82,13 @@ export function ApontamentoForm({
     const other = list.filter((a) => a.kind !== "servico");
     const ordered = [...servico, ...other];
     const q = qAct.trim().toLowerCase();
-    const filtered = q ? ordered.filter((a) => a.name.toLowerCase().includes(q)) : ordered;
+    const filtered = q
+      ? ordered.filter((a) => `${a.code ?? ""} ${a.name}`.toLowerCase().includes(q))
+      : ordered;
     return filtered.map((a) => ({
       id: a.id,
-      label: a.name,
-      hint: a.kind === "status" ? "Status" : undefined,
+      label: a.code ? `${a.code} · ${a.name}` : a.name,
+      hint: a.code && a.kind === "servico" ? "Planilha L449" : a.kind === "status" ? "Status" : undefined,
     }));
   }, [activities, eq, qAct]);
 

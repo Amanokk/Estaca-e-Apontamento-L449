@@ -6,10 +6,10 @@ import { i as formatDuration, l as todayISO, o as minutesBetween, r as formatDat
 import { T as Clock, p as Plus, s as Square } from "../_libs/lucide-react.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
 import { t as Button } from "./button-D6xWG6L4.mjs";
-import { E as useSnapshot, b as useCloseApontamento, f as loadLast } from "./use-snapshot-BTUnFbZn.mjs";
-import { n as openForEquipment } from "./crew-CHyNKGB-.mjs";
+import { E as useSnapshot, b as useCloseApontamento, f as loadLast } from "./use-snapshot-Cgv8nMOT.mjs";
+import { n as openForEquipment } from "./crew-DhffAVTP.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/apontamento-DMYrCD6w.js
+//#region node_modules/.nitro/vite/services/ssr/assets/apontamento-CKfuVu66.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function Home() {

@@ -1,9 +1,9 @@
 import { n as TSS_SERVER_FUNCTION, t as createServerFn } from "./ssr.mjs";
 import { u as uid } from "./utils-C8V_sHGQ.mjs";
-import { c as WORKS, l as buildDescription, n as EQUIPMENT, s as STREETS, t as ACTIVITIES } from "./description--QsXGJw3.mjs";
+import { c as WORKS, l as buildDescription, n as EQUIPMENT, s as STREETS, t as ACTIVITIES } from "./description-BnY-r9wc.mjs";
 import { n as googleHybridTileUrl, r as latLngToTile } from "./googleMaps-CypfyYWU.mjs";
 import { a as number, n as array, o as object, r as boolean, s as string, t as _enum } from "../_libs/zod.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/api-BF2gOBSz.js
+//#region node_modules/.nitro/vite/services/ssr/assets/api-rGkaXAuM.js
 var createServerRpc = (serverFnMeta, splitImportFn) => {
 	const url = "/_serverFn/" + serverFnMeta.id;
 	return Object.assign(splitImportFn, {
@@ -323,7 +323,10 @@ async function ensureSeed() {
 		console.error("[seed] presence columns", err);
 	}
 	await sql`delete from apontamentos where device_id = ${"seed"}`;
-	if (((await sql`select count(*)::int as n from works`)[0]?.n ?? 0) > 0) return;
+	if (((await sql`select count(*)::int as n from works`)[0]?.n ?? 0) > 0) {
+		await ensureCatalog();
+		return;
+	}
 	for (const w of WORKS) await sql`insert into works (id, code, name, active) values (${w.id}, ${w.code}, ${w.name}, ${w.active})`;
 	for (const s of STREETS) await sql`insert into streets (id, name, work_id, active) values (${s.id}, ${s.name}, ${s.workId}, ${s.active})`;
 	for (const a of ACTIVITIES) await sql`insert into activities (id, name, kind, code) values (${a.id}, ${a.name}, ${a.kind}, ${a.code ?? null})`;
@@ -332,6 +335,31 @@ async function ensureSeed() {
 		await sql`insert into equipment (id, code, name, kind, plate, activity_ids, active)
       values (${e.id}, ${e.code}, ${e.name}, ${e.kind}, ${e.plate ?? null}, ${ids}::jsonb, ${e.active})`;
 	}
+}
+var catalogReady = false;
+async function ensureCatalog() {
+	if (catalogReady) return;
+	const sql = await getSql();
+	const existing = await sql`select id from activities`;
+	const have = new Set(existing.map((r) => r.id));
+	for (const a of ACTIVITIES) {
+		if (have.has(a.id)) continue;
+		await sql`insert into activities (id, name, kind, code) values (${a.id}, ${a.name}, ${a.kind}, ${a.code ?? null})`;
+	}
+	for (const e of EQUIPMENT) {
+		const [cur] = await sql`select id, activity_ids from equipment where id = ${e.id}`;
+		if (!cur) continue;
+		const ids = asIds(cur.activity_ids);
+		const set = new Set(ids);
+		let changed = false;
+		for (const id of e.activityIds) {
+			if (set.has(id)) continue;
+			set.add(id);
+			changed = true;
+		}
+		if (changed) await sql`update equipment set activity_ids = ${JSON.stringify([...set])}::jsonb where id = ${e.id}`;
+	}
+	catalogReady = true;
 }
 var getSnapshot_createServerFn_handler = createServerRpc({
 	id: "8d42ed533f9e880af7d4b9c7f833591bfa25f76948cdffd848723661f020b3dc",

@@ -183,7 +183,10 @@ async function ensureSeed() {
   await sql`delete from apontamentos where device_id = ${"seed"}`;
 
   const count = await sql<{ n: number }>`select count(*)::int as n from works`;
-  if ((count[0]?.n ?? 0) > 0) return;
+  if ((count[0]?.n ?? 0) > 0) {
+    await ensureCatalog();
+    return;
+  }
 
   for (const w of WORKS) {
     await sql`insert into works (id, code, name, active) values (${w.id}, ${w.code}, ${w.name}, ${w.active})`;
@@ -199,6 +202,35 @@ async function ensureSeed() {
     await sql`insert into equipment (id, code, name, kind, plate, activity_ids, active)
       values (${e.id}, ${e.code}, ${e.name}, ${e.kind}, ${e.plate ?? null}, ${ids}::jsonb, ${e.active})`;
   }
+}
+
+let catalogReady = false;
+
+async function ensureCatalog() {
+  if (catalogReady) return;
+  const sql = await getSql();
+  const existing = await sql<{ id: string }>`select id from activities`;
+  const have = new Set(existing.map((r) => r.id));
+  for (const a of ACTIVITIES) {
+    if (have.has(a.id)) continue;
+    await sql`insert into activities (id, name, kind, code) values (${a.id}, ${a.name}, ${a.kind}, ${a.code ?? null})`;
+  }
+  for (const e of EQUIPMENT) {
+    const [cur] = await sql<{ id: string; activity_ids: unknown }>`select id, activity_ids from equipment where id = ${e.id}`;
+    if (!cur) continue;
+    const ids = asIds(cur.activity_ids);
+    const set = new Set(ids);
+    let changed = false;
+    for (const id of e.activityIds) {
+      if (set.has(id)) continue;
+      set.add(id);
+      changed = true;
+    }
+    if (changed) {
+      await sql`update equipment set activity_ids = ${JSON.stringify([...set])}::jsonb where id = ${e.id}`;
+    }
+  }
+  catalogReady = true;
 }
 
 export const getSnapshot = createServerFn({ method: "POST" })

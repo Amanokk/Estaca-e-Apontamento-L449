@@ -6,11 +6,11 @@ import { r as formatDateBR } from "./utils-C8V_sHGQ.mjs";
 import { S as FileSpreadsheet, o as Trash2, u as Search } from "../_libs/lucide-react.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
 import { t as Button } from "./button-D6xWG6L4.mjs";
-import { E as useSnapshot, x as useDeleteApontamento } from "./use-snapshot-BTUnFbZn.mjs";
+import { E as useSnapshot, x as useDeleteApontamento } from "./use-snapshot-Cgv8nMOT.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { t as ScreenLoader } from "./screen-loader-ByV97_vr.mjs";
 import { t as Input } from "./input-BKnui5bz.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/historico-CL6IZOPK.js
+//#region node_modules/.nitro/vite/services/ssr/assets/historico-C_sALJZ9.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function Historico() {

@@ -36,13 +36,6 @@ function esc(s: string) {
 type LL = typeof import("leaflet");
 
 function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
-  map.createPane("stakes");
-  const pane = map.getPane("stakes");
-  if (pane) {
-    pane.style.zIndex = "550";
-    pane.style.pointerEvents = "none";
-  }
-
   const group = L.layerGroup().addTo(map);
   const markers = new Map<string, import("leaflet").Marker>();
   const icons = new Map<number, import("leaflet").DivIcon>();
@@ -66,7 +59,7 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
   const sync = () => {
     const size = map.getSize();
     const z = map.getZoom();
-    if (size.x < 80 || size.y < 80 || z < 17) {
+    if (size.x < 40 || size.y < 40 || z < 16) {
       if (markers.size) {
         group.clearLayers();
         markers.clear();
@@ -74,15 +67,6 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
       return;
     }
     const b = map.getBounds();
-    const latSpan = b.getNorth() - b.getSouth();
-    const lngSpan = b.getEast() - b.getWest();
-    if (latSpan > 0.008 || lngSpan > 0.008 || latSpan <= 0 || lngSpan <= 0) {
-      if (markers.size) {
-        group.clearLayers();
-        markers.clear();
-      }
-      return;
-    }
     let visible = stakesInRect(
       {
         south: b.getSouth(),
@@ -90,9 +74,9 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
         north: b.getNorth(),
         east: b.getEast(),
       },
-      40,
+      48,
     );
-    if (visible.length > 20) {
+    if (visible.length > 24) {
       const c = map.getCenter();
       visible = visible
         .map((st) => ({
@@ -100,7 +84,7 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
           d: Math.abs(st.pos.lat - c.lat) + Math.abs(st.pos.lng - c.lng),
         }))
         .sort((a, b) => a.d - b.d)
-        .slice(0, 20)
+        .slice(0, 24)
         .map((x) => x.st);
     }
     const keep = new Set<string>();
@@ -110,9 +94,9 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
       if (markers.has(id)) continue;
       const marker = L.marker([st.pos.lat, st.pos.lng], {
         icon: iconFor(st.number),
-        pane: "stakes",
         interactive: false,
         keyboard: false,
+        zIndexOffset: 200,
       }).addTo(group);
       markers.set(id, marker);
     }
@@ -126,9 +110,12 @@ function attachVisibleBalloons(L: LL, map: import("leaflet").Map) {
   map.on("moveend", sync);
   map.on("zoomend", sync);
   map.on("resize", sync);
-  map.whenReady(sync);
-  const t1 = window.setTimeout(sync, 120);
-  const t2 = window.setTimeout(sync, 600);
+  map.whenReady(() => {
+    map.invalidateSize();
+    sync();
+  });
+  const t1 = window.setTimeout(sync, 250);
+  const t2 = window.setTimeout(sync, 900);
 
   return () => {
     window.clearTimeout(t1);

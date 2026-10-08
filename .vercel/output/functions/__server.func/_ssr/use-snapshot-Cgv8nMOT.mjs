@@ -3,9 +3,9 @@ import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].
 import { i as useQueryClient, n as useQuery, t as useMutation } from "../_libs/react+tanstack__react-query.mjs";
 import { n as TSS_SERVER_FUNCTION, r as getServerFnById, t as createServerFn } from "./ssr.mjs";
 import { u as uid } from "./utils-C8V_sHGQ.mjs";
-import { c as WORKS, l as buildDescription, n as EQUIPMENT, s as STREETS, t as ACTIVITIES } from "./description--QsXGJw3.mjs";
+import { c as WORKS, l as buildDescription, n as EQUIPMENT, s as STREETS, t as ACTIVITIES } from "./description-BnY-r9wc.mjs";
 import { a as number, n as array, o as object, r as boolean, s as string, t as _enum } from "../_libs/zod.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/use-snapshot-BTUnFbZn.js
+//#region node_modules/.nitro/vite/services/ssr/assets/use-snapshot-Cgv8nMOT.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var DEFAULT_CENTER = {
 	lat: -22.7524,

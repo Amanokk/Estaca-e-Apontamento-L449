@@ -1,7 +1,16 @@
 import type { Activity, Equipment, Street, Work } from "./types";
+import {
+  HAUL_L449,
+  L449_SERVICES,
+  PIPA_L449,
+  RETRO_L449,
+  ROLO_L449,
+  VAN_L449,
+} from "./l449-services";
 
 /** Atividades extraídas dos diários G001 / APONTAMENTO das planilhas reais. */
 export const ACTIVITIES: Activity[] = [
+  ...L449_SERVICES,
   // Retroescavadeira
   { id: "transp-equip-frente", name: "Transporte de equipamentos para frente de serviço", kind: "deslocamento" },
   { id: "preparo-calcada", name: "Preparo de calçada", kind: "servico" },
@@ -95,6 +104,7 @@ export const ACTIVITIES: Activity[] = [
 ];
 
 const RETRO = [
+  ...RETRO_L449,
   "transp-equip-frente",
   "preparo-calcada",
   "exec-caixa-ralo",
@@ -137,6 +147,7 @@ const RETRO = [
 ];
 
 const BASCULANTE = [
+  ...HAUL_L449,
   "carreg-mat-subbase",
   "carreg-mat-base",
   "carreg-bica-subbase",
@@ -159,6 +170,7 @@ const BASCULANTE = [
 ];
 
 const PIPA = [
+  ...PIPA_L449,
   "umid-subbase",
   "umid-base",
   "abast-frente",
@@ -177,6 +189,7 @@ const PIPA = [
 ];
 
 const VAN = [
+  ...VAN_L449,
   "transp-colab-ida",
   "transp-colab-volta",
   "transp-colab-marambaia",
@@ -194,6 +207,7 @@ const VAN = [
 ];
 
 const ROLO = [
+  ...ROLO_L449,
   "comp-subleito",
   "comp-subbase",
   "comp-base",
@@ -211,6 +225,7 @@ const ROLO = [
 ];
 
 const TRUCK = [
+  ...HAUL_L449,
   "puxada-material",
   "puxada-drenagem",
   "puxada-pulmao",

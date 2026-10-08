@@ -5,9 +5,9 @@ import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.m
 import { t as GOOGLE_HYBRID_TILES } from "./googleMaps-CypfyYWU.mjs";
 import { E as ClipboardList, k as Camera, l as Settings2, n as ZoomOut, r as X, t as ZoomIn, y as LocateFixed } from "../_libs/lucide-react.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
-import { E as useSnapshot, T as usePresencePing, _ as setCrewLabel, c as getDeviceId, f as loadLast, l as gpsQuality, o as fetchMiniMap, s as getCrewLabel, w as useLivePresence } from "./use-snapshot-BTUnFbZn.mjs";
+import { E as useSnapshot, T as usePresencePing, _ as setCrewLabel, c as getDeviceId, f as loadLast, l as gpsQuality, o as fetchMiniMap, s as getCrewLabel, w as useLivePresence } from "./use-snapshot-Cgv8nMOT.mjs";
 import { i as downloadDataUrl, n as addExif, o as putPhoto, t as MiniMapThumb, u as useOnlineStatus } from "./MiniMapThumb-Crw4FNrw.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-pyPnycjT.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-Cv5l27qj.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function Splash() {
@@ -1349,6 +1349,45 @@ function getAllStakes() {
 	flat = getGeometries().flatMap((g) => g.stakes);
 	return flat;
 }
+var CELL = .002;
+function key(lat, lng) {
+	return `${Math.floor(lat / CELL)}:${Math.floor(lng / CELL)}`;
+}
+var grid = null;
+function getGrid() {
+	if (grid) return grid;
+	grid = /* @__PURE__ */ new Map();
+	for (const st of getAllStakes()) {
+		const k = key(st.pos.lat, st.pos.lng);
+		const bucket = grid.get(k);
+		if (bucket) bucket.push(st);
+		else grid.set(k, [st]);
+	}
+	return grid;
+}
+function stakesInRect(rect, limit) {
+	const g = getGrid();
+	const latSpan = rect.north - rect.south;
+	const lngSpan = rect.east - rect.west;
+	if (latSpan <= 0 || lngSpan <= 0) return [];
+	if (latSpan > .02 || lngSpan > .02) return [];
+	const y0 = Math.floor(rect.south / CELL);
+	const y1 = Math.floor(rect.north / CELL);
+	const x0 = Math.floor(rect.west / CELL);
+	const x1 = Math.floor(rect.east / CELL);
+	if (y1 - y0 > 12 || x1 - x0 > 12) return [];
+	const out = [];
+	for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+		const bucket = g.get(`${y}:${x}`);
+		if (!bucket) continue;
+		for (const st of bucket) {
+			if (st.pos.lat < rect.south || st.pos.lat > rect.north || st.pos.lng < rect.west || st.pos.lng > rect.east) continue;
+			out.push(st);
+			if (out.length >= limit) return out;
+		}
+	}
+	return out;
+}
 var boxes = null;
 function getStreetBoxes() {
 	if (boxes) return boxes;
@@ -1404,8 +1443,9 @@ function quantize(p) {
 function esc(s) {
 	return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-function addAllStakeBalloons(L, map) {
+function attachVisibleBalloons(L, map) {
 	const group = L.layerGroup().addTo(map);
+	const markers = /* @__PURE__ */ new Map();
 	const icons = /* @__PURE__ */ new Map();
 	const iconFor = (n) => {
 		let icon = icons.get(n);
@@ -1420,14 +1460,67 @@ function addAllStakeBalloons(L, map) {
 		}
 		return icon;
 	};
-	for (const st of getAllStakes()) L.marker([st.pos.lat, st.pos.lng], {
-		icon: iconFor(st.number),
-		interactive: false,
-		keyboard: false,
-		zIndexOffset: 120
-	}).addTo(group);
+	const stakeId = (street, n, lat, lng) => `${street}:${n}:${lat.toFixed(6)}:${lng.toFixed(6)}`;
+	const sync = () => {
+		const size = map.getSize();
+		const z = map.getZoom();
+		if (size.x < 40 || size.y < 40 || z < 16) {
+			if (markers.size) {
+				group.clearLayers();
+				markers.clear();
+			}
+			return;
+		}
+		const b = map.getBounds();
+		let visible = stakesInRect({
+			south: b.getSouth(),
+			west: b.getWest(),
+			north: b.getNorth(),
+			east: b.getEast()
+		}, 48);
+		if (visible.length > 24) {
+			const c = map.getCenter();
+			visible = visible.map((st) => ({
+				st,
+				d: Math.abs(st.pos.lat - c.lat) + Math.abs(st.pos.lng - c.lng)
+			})).sort((a, b) => a.d - b.d).slice(0, 24).map((x) => x.st);
+		}
+		const keep = /* @__PURE__ */ new Set();
+		for (const st of visible) {
+			const id = stakeId(st.street.name, st.number, st.pos.lat, st.pos.lng);
+			keep.add(id);
+			if (markers.has(id)) continue;
+			const marker = L.marker([st.pos.lat, st.pos.lng], {
+				icon: iconFor(st.number),
+				interactive: false,
+				keyboard: false,
+				zIndexOffset: 200
+			}).addTo(group);
+			markers.set(id, marker);
+		}
+		for (const [id, marker] of markers) {
+			if (keep.has(id)) continue;
+			group.removeLayer(marker);
+			markers.delete(id);
+		}
+	};
+	map.on("moveend", sync);
+	map.on("zoomend", sync);
+	map.on("resize", sync);
+	map.whenReady(() => {
+		map.invalidateSize();
+		sync();
+	});
+	const t1 = window.setTimeout(sync, 250);
+	const t2 = window.setTimeout(sync, 900);
 	return () => {
+		window.clearTimeout(t1);
+		window.clearTimeout(t2);
+		map.off("moveend", sync);
+		map.off("zoomend", sync);
+		map.off("resize", sync);
 		group.remove();
+		markers.clear();
 	};
 }
 function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce, pins = [] }) {
@@ -1482,7 +1575,7 @@ function StakeMap({ position, accuracy, match, follow, onUserDrag, recenterNonce
 				attribution: "Google"
 			}).addTo(map);
 			pinLayerRef.current = L.layerGroup().addTo(map);
-			detach = addAllStakeBalloons(L, map);
+			detach = attachVisibleBalloons(L, map);
 			map.on("dragstart", () => {
 				draggingRef.current = true;
 				onDragRef.current();

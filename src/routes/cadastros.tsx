@@ -318,7 +318,7 @@ function AtividadesTab() {
         </Button>
       </section>
       <p className="text-xs text-muted">
-        As opções de cada máquina vêm dos diários reais (LOK 453, LYC 154, pipa LYC 025, van LYC 303, rolo LOC 073…).
+        As opções de cada máquina incluem os códigos da planilha L449 (B.3.1 escavação, B.6.16 caixa ralo…) e os diários de campo.
       </p>
       <ul className="flex flex-col gap-1.5">
         {activities.map((a) => (

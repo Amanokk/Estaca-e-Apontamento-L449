@@ -1,4 +1,4 @@
-//#region node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-DhFSKbCK.js
+//#region node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-CtIHJbWG.js
 var tsrStartManifest = () => ({ routes: {
 	__root__: {
 		filePath: "/workspace/src/routes/__root.tsx",
@@ -13,14 +13,14 @@ var tsrStartManifest = () => ({ routes: {
 			"/relatorio"
 		],
 		preloads: [
-			"/assets/index-DEdd3j4i.js",
+			"/assets/index-D-yiYfaC.js",
 			"/assets/rolldown-runtime-CbXtAM7H.js",
 			"/assets/createLucideIcon-BoCsjNTt.js"
 		],
 		scripts: [{ attrs: {
 			type: "module",
 			async: !0,
-			src: "/assets/index-DEdd3j4i.js"
+			src: "/assets/index-D-yiYfaC.js"
 		} }]
 	},
 	"/": {
@@ -28,8 +28,8 @@ var tsrStartManifest = () => ({ routes: {
 		children: void 0,
 		css: ["/assets/routes-vh-t_kPv.css"],
 		preloads: [
-			"/assets/routes-J5uzwPwT.js",
-			"/assets/use-snapshot-CgdjdzMM.js",
+			"/assets/routes-Cga-5RTT.js",
+			"/assets/use-snapshot-DTMv0Zpz.js",
 			"/assets/app-shell-C83GFiqK.js",
 			"/assets/locate-fixed-DMCX_9fQ.js",
 			"/assets/MiniMapThumb-D5C8V3jz.js"
@@ -39,19 +39,19 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "/workspace/src/routes/apontamento.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/apontamento-C0_zr5Ke.js",
-			"/assets/use-snapshot-CgdjdzMM.js",
+			"/assets/apontamento-Dgk5l7gi.js",
+			"/assets/use-snapshot-DTMv0Zpz.js",
 			"/assets/app-shell-C83GFiqK.js",
 			"/assets/button-D0XG9SfL.js",
-			"/assets/crew-Lo8Aq80M.js"
+			"/assets/crew-CYBpEZN4.js"
 		]
 	},
 	"/cadastros": {
 		filePath: "/workspace/src/routes/cadastros.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/cadastros-BKzOscZq.js",
-			"/assets/use-snapshot-CgdjdzMM.js",
+			"/assets/cadastros-DskdZLgW.js",
+			"/assets/use-snapshot-DTMv0Zpz.js",
 			"/assets/app-shell-C83GFiqK.js",
 			"/assets/button-D0XG9SfL.js",
 			"/assets/choice-CNvNqprz.js",
@@ -76,8 +76,8 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "/workspace/src/routes/historico.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/historico-v7AsEfaU.js",
-			"/assets/use-snapshot-CgdjdzMM.js",
+			"/assets/historico-BPZ6K3hh.js",
+			"/assets/use-snapshot-DTMv0Zpz.js",
 			"/assets/app-shell-C83GFiqK.js",
 			"/assets/trash-2-DQnSs2yZ.js",
 			"/assets/button-D0XG9SfL.js",
@@ -89,13 +89,13 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "/workspace/src/routes/mapa.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/mapa-BduJ1fLe.js",
-			"/assets/use-snapshot-CgdjdzMM.js",
+			"/assets/mapa-CkK1wO1C.js",
+			"/assets/use-snapshot-DTMv0Zpz.js",
 			"/assets/app-shell-C83GFiqK.js",
-			"/assets/place-D5sYXXqe.js",
+			"/assets/place-CcQVqLff.js",
 			"/assets/locate-fixed-DMCX_9fQ.js",
 			"/assets/button-D0XG9SfL.js",
-			"/assets/crew-Lo8Aq80M.js",
+			"/assets/crew-CYBpEZN4.js",
 			"/assets/screen-loader-BEhVtDhO.js",
 			"/assets/input-CFht5w4X.js"
 		]
@@ -104,14 +104,14 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "/workspace/src/routes/novo.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/novo-MeqFNLxe.js",
-			"/assets/use-snapshot-CgdjdzMM.js",
+			"/assets/novo-B8tznbmI.js",
+			"/assets/use-snapshot-DTMv0Zpz.js",
 			"/assets/app-shell-C83GFiqK.js",
 			"/assets/arrow-left-B1ZssPaX.js",
 			"/assets/check-Bhn_hwZg.js",
-			"/assets/place-D5sYXXqe.js",
+			"/assets/place-CcQVqLff.js",
 			"/assets/button-D0XG9SfL.js",
-			"/assets/crew-Lo8Aq80M.js",
+			"/assets/crew-CYBpEZN4.js",
 			"/assets/choice-CNvNqprz.js",
 			"/assets/input-CFht5w4X.js"
 		]
@@ -120,8 +120,8 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "/workspace/src/routes/relatorio.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/relatorio-CPiUzwMk.js",
-			"/assets/use-snapshot-CgdjdzMM.js",
+			"/assets/relatorio-CSY5s-Bg.js",
+			"/assets/use-snapshot-DTMv0Zpz.js",
 			"/assets/app-shell-C83GFiqK.js",
 			"/assets/share-2-Bm20ovXJ.js",
 			"/assets/button-D0XG9SfL.js",

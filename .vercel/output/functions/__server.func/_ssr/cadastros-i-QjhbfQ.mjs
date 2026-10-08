@@ -1,15 +1,15 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { a as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
-import { r as KIND_LABEL } from "./description--QsXGJw3.mjs";
+import { r as KIND_LABEL } from "./description-BnY-r9wc.mjs";
 import { t as AppShell } from "./app-shell-B3Lkiq8b.mjs";
 import { t as Button } from "./button-D6xWG6L4.mjs";
-import { C as useInvalidateSnapshot, E as useSnapshot, a as addWork, i as addStreet, n as addActivity, r as addEquipment, v as toggleStreet, y as updateEquipment } from "./use-snapshot-BTUnFbZn.mjs";
+import { C as useInvalidateSnapshot, E as useSnapshot, a as addWork, i as addStreet, n as addActivity, r as addEquipment, v as toggleStreet, y as updateEquipment } from "./use-snapshot-Cgv8nMOT.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { r as ToggleList } from "./choice-DtEvLaaF.mjs";
 import { t as ScreenLoader } from "./screen-loader-ByV97_vr.mjs";
 import { n as Label, t as Input } from "./input-BKnui5bz.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/cadastros-x81BJ1Ma.js
+//#region node_modules/.nitro/vite/services/ssr/assets/cadastros-i-QjhbfQ.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var TABS = [
@@ -374,7 +374,7 @@ function AtividadesTab() {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "text-xs text-muted",
-				children: "As opções de cada máquina vêm dos diários reais (LOK 453, LYC 154, pipa LYC 025, van LYC 303, rolo LOC 073…)."
+				children: "As opções de cada máquina incluem os códigos da planilha L449 (B.3.1 escavação, B.6.16 caixa ralo…) e os diários de campo."
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
 				className: "flex flex-col gap-1.5",
