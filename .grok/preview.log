@@ -318,3 +318,18 @@ Node.js v22.23.2
     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
     at async AsyncFunction.__executeServer (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:504:13)
     at async handleServerAction (file:///workspace/.vercel/output/functions/__server.func/_ssr/ssr.mjs:780:10)
+
+> preview
+> node scripts/with-app-env.mjs vite preview
+
+
+ ╭────────── [Build Info] ─────────────╮
+ │                                     │
+ │  - Build Directory: .vercel/output  │
+ │  - Date: 10/8/2026, 11:21:06 AM     │
+ │  - Nitro Version: 3.0.260610-beta   │
+ │  - Nitro Preset: vercel             │
+ │                                     │
+ ╰─────────────────────────────────────╯
+
+  ➜  Local:   http://127.0.0.1:8081/

@@ -20,6 +20,11 @@
   --color-ok-fg: #14532d;
   --color-warn: #fbbf24;
   --color-ink: #f8fafc;
+  --color-paper: #0f172a;
+  --color-soft: #1e293b;
+  --color-line: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --color-dren: #22d3ee;
+  --color-dren-fg: #042f2e;
   --color-border: color-mix(in oklab, var(--color-fg) 12%, transparent);
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;

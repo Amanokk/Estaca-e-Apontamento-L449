@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/producao",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Estaca GPS",
+      "hasCanvas": false,
+      "bodyTextLen": 866,
+      "bodyTextHash": "8d5c6fb97c13f2a7578c27e01c17f8b0265e514fce8dcb2b76b894bd9e2cd613",
+      "bodyTextPrefix": "Produção do dia L449 · texto para o WhatsApp Dia Texto Totais Di",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/producao-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Estaca GPS",
+      "hasCanvas": false,
+      "bodyTextLen": 866,
+      "bodyTextHash": "8d5c6fb97c13f2a7578c27e01c17f8b0265e514fce8dcb2b76b894bd9e2cd613",
+      "bodyTextPrefix": "Produção do dia L449 · texto para o WhatsApp Dia Texto Totais Di",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/producao-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/producao-preview.json"
+}

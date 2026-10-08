@@ -16,6 +16,7 @@ import { Route as FotosRouteImport } from './routes/fotos'
 import { Route as HistoricoRouteImport } from './routes/historico'
 import { Route as MapaRouteImport } from './routes/mapa'
 import { Route as NovoRouteImport } from './routes/novo'
+import { Route as ProducaoRouteImport } from './routes/producao'
 import { Route as RelatorioRouteImport } from './routes/relatorio'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,11 @@ const NovoRoute = NovoRouteImport.update({
   path: '/novo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProducaoRoute = ProducaoRouteImport.update({
+  id: '/producao',
+  path: '/producao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RelatorioRoute = RelatorioRouteImport.update({
   id: '/relatorio',
   path: '/relatorio',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/historico': typeof HistoricoRoute
   '/mapa': typeof MapaRoute
   '/novo': typeof NovoRoute
+  '/producao': typeof ProducaoRoute
   '/relatorio': typeof RelatorioRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/historico': typeof HistoricoRoute
   '/mapa': typeof MapaRoute
   '/novo': typeof NovoRoute
+  '/producao': typeof ProducaoRoute
   '/relatorio': typeof RelatorioRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/historico': typeof HistoricoRoute
   '/mapa': typeof MapaRoute
   '/novo': typeof NovoRoute
+  '/producao': typeof ProducaoRoute
   '/relatorio': typeof RelatorioRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/historico'
     | '/mapa'
     | '/novo'
+    | '/producao'
     | '/relatorio'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/historico'
     | '/mapa'
     | '/novo'
+    | '/producao'
     | '/relatorio'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/historico'
     | '/mapa'
     | '/novo'
+    | '/producao'
     | '/relatorio'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   HistoricoRoute: typeof HistoricoRoute
   MapaRoute: typeof MapaRoute
   NovoRoute: typeof NovoRoute
+  ProducaoRoute: typeof ProducaoRoute
   RelatorioRoute: typeof RelatorioRoute
 }
 
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NovoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/producao': {
+      id: '/producao'
+      path: '/producao'
+      fullPath: '/producao'
+      preLoaderRoute: typeof ProducaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/relatorio': {
       id: '/relatorio'
       path: '/relatorio'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoricoRoute: HistoricoRoute,
   MapaRoute: MapaRoute,
   NovoRoute: NovoRoute,
+  ProducaoRoute: ProducaoRoute,
   RelatorioRoute: RelatorioRoute,
 }
 export const routeTree = rootRouteImport

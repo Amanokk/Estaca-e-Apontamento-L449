@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, ClipboardList, Images, MapPinned } from "lucide-react";
+import { CalendarDays, ClipboardList, HardHat, Images, MapPinned } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/", label: "Estacas", icon: MapPinned },
   { to: "/apontamento", label: "Apontar", icon: ClipboardList },
+  { to: "/producao", label: "Produção", icon: HardHat },
   { to: "/historico", label: "Histórico", icon: CalendarDays },
   { to: "/fotos", label: "Fotos", icon: Images },
 ] as const;
@@ -17,7 +18,7 @@ export function AppShell({ children, hideNav }: { children: ReactNode; hideNav?:
       <div className={cn("flex min-h-0 flex-1 flex-col", hideNav ? "pb-0" : "pb-16")}>{children}</div>
       {hideNav ? null : (
         <nav className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/95 backdrop-blur-md">
-          <div className="mx-auto grid max-w-lg grid-cols-4 px-2 pb-[env(safe-area-inset-bottom)] pt-1">
+          <div className="mx-auto grid max-w-lg grid-cols-5 px-1 pb-[env(safe-area-inset-bottom)] pt-1">
             {NAV.map((item) => {
               const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
               const Icon = item.icon;
